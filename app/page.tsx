@@ -2,28 +2,65 @@
 
 import { useState } from "react";
 
+type FormData = {
+  stack: string;
+  level: string;
+}
+
 export default function Home() {
-  const [message, setMessage] = useState("");
+  const [stack, setStack] = useState("");
+  const [level, setLevel] = useState("");
+  const [result, setResult] = useState<string | null>(null);
 
-  const handleClick = async () => {
-    const res = await fetch("/api/hello");
+  const handleSubmit = async () => {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        stack,
+        level,
+      }),
+    });
+
     const data = await res.json();
-    setMessage(data.message);
+    setResult(data.message);
   };
-
+  
   return (
-    <main style={{ padding: "40px" }}>
-      <h1>DevPath Day 1</h1>
+    <main style={{ padding: "40px", maxWidth: "500px" }}>
+      <h1>DevPath Day 2</h1>
 
-      <button onClick={handleClick}>
-        서버에 요청 보내기
+      <div>
+        <label>개발 스택</label>
+        <input
+          value={stack}
+          onChange={(e) => setStack(e.target.value)}
+          placeholder="ex) React"
+        />
+      </div>
+
+      <div style={{ marginTop: "10px"}}>
+        <label>난이도</label>
+        <input
+          value={level}
+          onChange={(e) => setLevel(e.target.value)}
+          placeholder="ex) 초급"
+        />
+      </div>
+
+      <button style={{ marginTop: "20px" }} onClick={handleSubmit}>
+        서버로 보내기
       </button>
 
-      {message && (
-        <p style={{ marginTop: "20px" }}>
-          서버 응답: {message}
-        </p>
-      )}
+      {
+        result && (
+          <p style={{ marginTop: "20px" }}>
+            서버 응답: {result}
+          </p>
+        )
+      }
     </main>
   );
 }

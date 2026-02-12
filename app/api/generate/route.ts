@@ -131,8 +131,8 @@ export async function POST(request: Request) {
   - 사용자의 언어/스택과 선택한 프레임워크를 최대한 활용한다(선택이 없으면 언어/스택 중심).
 - buildSteps는 6~10단계:
   - 초기 세팅 → 핵심 구현 → 예외 처리/검증 → 테스트(간단해도 됨) → 배포/운영 고려 순서로 포함한다.
-- readmeDraft는 마크다운을 쓰지 말고, 순수 텍스트로 작성한다.
-  - 포함 항목: 개요 / 주요 기능 / 기술 스택 / 실행 방법 / 폴더 구조 / 개선 아이디어
+- readmeDraft는 Markdown 형식으로 작성한다.
+  - 포함 항목: # 개요 / ## 주요 기능 / ## 기술 스택 / ## 실행 방법 / ## 폴더 구조 / ## 개선 아이디어
 - interviewPoints는 최소 5개:
   - 기술 선택 이유, 트레이드오프, 구조/아키텍처 선택 근거를 묻는 질문 위주로 작성한다.
 `.trim();
@@ -186,7 +186,10 @@ export async function POST(request: Request) {
 
     let parsed: unknown;
     try {
-      parsed = JSON.parse(rawText);
+      // ✅ 가벼운 정제: ```json ... ``` 또는 ``` ... ``` 코드펜스 제거
+      const sanitizedText = rawText.replace(/```(?:json)?/gi, "").trim();
+
+      parsed = JSON.parse(sanitizedText);
 
       // ✅ Gemini가 가끔 [{...}] 형태로 주는 경우가 있어 보정
       if (Array.isArray(parsed)) {
@@ -194,7 +197,11 @@ export async function POST(request: Request) {
       }
     } catch (e: any) {
       return NextResponse.json(
-        { error: "Gemini JSON 파싱 실패", detail: String(e?.message ?? e), raw: rawText },
+        {
+          error: "Gemini JSON 파싱 실패",
+          detail: String(e?.message ?? e),
+          raw: rawText,
+        },
         { status: 500 }
       );
     }

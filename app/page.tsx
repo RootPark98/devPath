@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
+import HistoryPanel from "@/components/devpath/HistoryPanel";
+
 import { copyToClipboard } from "@/lib/devpath/clipboard";
-import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
+import type { GeneratedPlan, Language, Level, PlanHistoryItem } from "@/lib/devpath/types";
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
 
-// 이 파일은 "상태 + 비즈니스 로직"
-// 👉 UI는 모두 컴포넌트로 분리
-// 👉 여기서는 상태와 API 호출만 담당
+/**
+ * Home은 프론트의 "컨트롤 타워"
+ * - 상태 관리
+ * - API 호출
+ * - 히스토리 관리
+ * - UI 컴포넌트 조립
+ */
 
 export default function Home() {
   // 입력 상태
@@ -22,6 +28,27 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // 히스토리 상태
+  const [history, setHistory] = useState<PlanHistoryItem[]>([]);
+
+  const HISTORY_KEY = "devpath:history:v1";
+  const HISTORY_LIMIT = 10;
+
+  // 최초 로드 시 localStorage에서 히스토리 불러오기
+  useEffect(() => {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        setHistory(parsed);
+      }
+    } catch {
+      // JSON 파싱 실패 시 무시
+    }
+  }, []);
 
   // 언어 변경 시, 허용되지 않는 프레임워크 제거
   const handleLanguageChange = (next: Language) => {
@@ -56,11 +83,53 @@ export default function Home() {
 
       const data: GeneratedPlan = await res.json();
       setPlan(data);
+
+      // =========================
+      // 히스토리 저장
+      // =========================
+
+      const item: PlanHistoryItem = {
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+        input: { language, level, frameworks },
+        output: data,
+      };
+
+      setHistory((prev) => {
+        const next = [item, ...prev].slice(0, HISTORY_LIMIT);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+        return next;
+      });
     } catch (e: any) {
       setError(e?.message ?? "알 수 없는 오류");
     } finally {
       setLoading(false);
     }
+  };
+
+  // =========================
+  // 히스토리 관련 핸들러
+  // =========================
+
+  const restoreHistory = (item: PlanHistoryItem) => {
+    setLanguage(item.input.language);
+    setLevel(item.input.level);
+    setFrameworks(item.input.frameworks);
+    setPlan(item.output);
+    setError(null);
+  };
+
+  const deleteHistory = (id: string) => {
+    setHistory((prev) => {
+      const next = prev.filter((x) => x.id !== id);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem(HISTORY_KEY);
   };
 
   const fullCopyText =
@@ -130,6 +199,13 @@ ${plan.interviewPoints.join("\n")}
           }}
         />
       )}
+
+      <HistoryPanel
+        items={history}
+        onRestore={restoreHistory}
+        onDelete={deleteHistory}
+        onClear={clearHistory}
+      />
     </main>
   );
 }

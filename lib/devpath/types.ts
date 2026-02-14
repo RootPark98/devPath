@@ -20,3 +20,14 @@ export type Language = (typeof LANGUAGES)[number];
 
 export const LEVELS = ["초급", "중급", "고급"] as const;
 export type Level = (typeof LEVELS)[number];
+
+export type PlanHistoryItem = {
+  id: string;
+  createdAt: number;
+  input: {
+    language: Language;
+    level: Level;
+    frameworks: string[];
+  };
+  output: GeneratedPlan;
+};

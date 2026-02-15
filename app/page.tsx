@@ -7,8 +7,11 @@ import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
 
 import { copyToClipboard } from "@/lib/devpath/clipboard";
-import type { GeneratedPlan, Language, Level, PlanHistoryItem } from "@/lib/devpath/types";
+import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
+
+import { useHistory } from "@/hooks/useHistory";
+import type { PlanHistoryItem } from "@/lib/devpath/history";
 
 /**
  * Home은 프론트의 "컨트롤 타워"
@@ -29,26 +32,7 @@ export default function Home() {
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 히스토리 상태
-  const [history, setHistory] = useState<PlanHistoryItem[]>([]);
-
-  const HISTORY_KEY = "devpath:history:v1";
-  const HISTORY_LIMIT = 10;
-
-  // 최초 로드 시 localStorage에서 히스토리 불러오기
-  useEffect(() => {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        setHistory(parsed);
-      }
-    } catch {
-      // JSON 파싱 실패 시 무시
-    }
-  }, []);
+  const { history, add, remove, clear } = useHistory();
 
   // 언어 변경 시, 허용되지 않는 프레임워크 제거
   const handleLanguageChange = (next: Language) => {
@@ -95,11 +79,7 @@ export default function Home() {
         output: data,
       };
 
-      setHistory((prev) => {
-        const next = [item, ...prev].slice(0, HISTORY_LIMIT);
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-        return next;
-      });
+      add(item);
     } catch (e: any) {
       setError(e?.message ?? "알 수 없는 오류");
     } finally {
@@ -117,19 +97,6 @@ export default function Home() {
     setFrameworks(item.input.frameworks);
     setPlan(item.output);
     setError(null);
-  };
-
-  const deleteHistory = (id: string) => {
-    setHistory((prev) => {
-      const next = prev.filter((x) => x.id !== id);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem(HISTORY_KEY);
   };
 
   const fullCopyText =
@@ -203,8 +170,8 @@ ${plan.interviewPoints.join("\n")}
       <HistoryPanel
         items={history}
         onRestore={restoreHistory}
-        onDelete={deleteHistory}
-        onClear={clearHistory}
+        onDelete={remove}
+        onClear={clear}
       />
     </main>
   );

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+import type { ApiResponse, DevPathErrorCode } from "@/lib/devpath/api";
+import type { GeneratedPlan } from "@/lib/devpath/types";
+
 import { isLanguage, isLevel, sanitizeFrameworks, type RequestBody } from "../../../lib/devpath/server/input";
 import { buildPrompt } from "../../../lib/devpath/server/prompt";
 import { callGeminiGenerateContent } from "../../../lib/devpath/server/gemini";
@@ -18,13 +21,27 @@ import { coercePlan, validatePlan } from "../../../lib/devpath/server/validate";
  * 디테일 로직은 전부 lib 레이어로 내려보냄.
  */
 
+/**
+ * 응답 헬퍼
+ * - API 계약을 한 곳에서 강제
+ */
+function ok<T>(data: T, status = 200) {
+  const body: ApiResponse<T> = { ok: true, data };
+  return NextResponse.json(body, { status });
+}
+
+function fail(code: DevPathErrorCode, message: string, status: number, detail?: unknown) {
+  const body: ApiResponse<never> = { ok: false, code, message, detail };
+  return NextResponse.json(body, { status });
+}
+
 export async function POST(request: Request) {
   try {
     const raw = await request.json();
 
     // ✅ 서버에서도 입력 강제 (프론트만 믿지 않기)
     if (!isLanguage(raw?.language) || !isLevel(raw?.level)) {
-      return NextResponse.json({ error: "잘못된 입력값입니다." }, { status: 400 });
+      return fail("INVALID_INPUT", "잘못된 입력값입니다.", 400);
     }
 
     const body: RequestBody = {
@@ -35,10 +52,7 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json(
-        { error: "GEMINI_API_KEY가 설정되어 있지 않습니다." },
-        { status: 500 }
-      );
+      return fail("MISSING_API_KEY", "GEMINI_API_KEY가 설정되어 있지 않습니다.", 500);
     }
 
     const prompt = buildPrompt(body);
@@ -53,43 +67,30 @@ export async function POST(request: Request) {
         maxRetries429: 2,
       });
     } catch (e: any) {
-      // ✅ timeout은 504로 구분
       if (e?.code === "TIMEOUT" || e?.message === "TIMEOUT") {
-        return NextResponse.json(
-          { error: "AI 응답 시간이 초과되었습니다. 다시 시도해주세요." },
-          { status: 504 }
-        );
+        return fail("TIMEOUT", "AI 응답 시간이 초과되었습니다. 다시 시도해주세요.", 504);
       }
-      return NextResponse.json(
-        { error: "네트워크 오류가 발생했습니다.", detail: String(e?.message ?? e) },
-        { status: 500 }
-      );
+      return fail("UPSTREAM_ERROR", "외부 API 호출 중 네트워크 오류가 발생했습니다.", 500, {
+        error: String(e?.message ?? e),
+      });
     }
 
     // ✅ 429는 여기까지 왔다는 건 재시도 끝까지 실패했다는 뜻
     if (resp.status === 429) {
-      return NextResponse.json(
-        { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
-        { status: 429 }
-      );
+      return fail("RATE_LIMIT", "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", 429);
     }
 
+    // 그 외 upstream 에러
     if (!resp.ok) {
       const errText = await resp.text();
-      return NextResponse.json(
-        { error: "Gemini API 호출 실패", detail: errText },
-        { status: 500 }
-      );
+      return fail("UPSTREAM_ERROR", "Gemini API 호출 실패", 500, { upstream: errText });
     }
 
     const json = await resp.json();
     const rawText: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     if (!rawText || typeof rawText !== "string") {
-      return NextResponse.json(
-        { error: "Gemini 응답에서 JSON 텍스트를 찾지 못했습니다." },
-        { status: 500 }
-      );
+      return fail("PARSE_ERROR", "Gemini 응답에서 JSON 텍스트를 찾지 못했습니다.", 500);
     }
 
     // ✅ 파싱(정제 + JSON.parse)
@@ -97,32 +98,27 @@ export async function POST(request: Request) {
     try {
       parsed = safeParseGeminiJson(rawText);
     } catch (e: any) {
-      return NextResponse.json(
-        { error: "Gemini JSON 파싱 실패", detail: String(e?.message ?? e), rawText },
-        { status: 500 }
-      );
+      return fail("PARSE_ERROR", "Gemini JSON 파싱 실패", 500, {
+        error: String(e?.message ?? e),
+        rawText,
+      });
     }
 
     // ✅ 보정 후 검증(부분 성공 전략)
     const coerced = coercePlan(parsed);
 
     if (!validatePlan(coerced)) {
-      return NextResponse.json(
-        {
-          error: "Gemini JSON 스키마 검증 실패",
-          hint: "필수 필드 누락/타입 불일치 가능성이 큽니다.",
-          raw: parsed,
-          rawText,
-        },
-        { status: 500 }
-      );
+      return fail("SCHEMA_ERROR", "Gemini JSON 스키마 검증 실패", 500, {
+        raw: parsed,
+        rawText,
+      });
     }
 
-    return NextResponse.json(coerced);
+    // 7) 성공
+    return ok<GeneratedPlan>(coerced);
   } catch (e: any) {
-    return NextResponse.json(
-      { error: "서버 처리 중 오류", detail: String(e?.message ?? e) },
-      { status: 500 }
-    );
+    return fail("INTERNAL_ERROR", "서버 처리 중 오류", 500, {
+      error: String(e?.message ?? e),
+    });
   }
 }

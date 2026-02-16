@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
@@ -8,6 +8,7 @@ import HistoryPanel from "@/components/devpath/HistoryPanel";
 
 import { copyToClipboard } from "@/lib/devpath/clipboard";
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
+import { generatePlan, DevPathClientError } from "@/lib/devpath/client/generatePlan";
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
 
 import { useHistory } from "@/hooks/useHistory";
@@ -54,33 +55,26 @@ export default function Home() {
     setPlan(null);
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ language, level, frameworks }),
-      });
+    const data = await generatePlan({ language, level, frameworks });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error ?? "요청 실패");
+    setPlan(data);
+
+    const item: PlanHistoryItem = {
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      input: { language, level, frameworks },
+      output: data,
+    };
+
+    add(item);
+    } catch (e: any) {
+      // ✅ 이제부터 “문자열”이 아니라 “코드”로 분기 가능
+      if (e instanceof DevPathClientError) {
+        // (지금은 메시지만 노출) — 다음 단계에서 code별 UX를 강화하면 됨
+        setError(e.message);
+        return;
       }
 
-      const data: GeneratedPlan = await res.json();
-      setPlan(data);
-
-      // =========================
-      // 히스토리 저장
-      // =========================
-
-      const item: PlanHistoryItem = {
-        id: crypto.randomUUID(),
-        createdAt: Date.now(),
-        input: { language, level, frameworks },
-        output: data,
-      };
-
-      add(item);
-    } catch (e: any) {
       setError(e?.message ?? "알 수 없는 오류");
     } finally {
       setLoading(false);

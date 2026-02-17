@@ -145,13 +145,15 @@ lib/
 
 ## 🛠️ 환경 변수
 
-.env.local
+`.env.local`
 
-GITHUB_ID=...
-GITHUB_SECRET=...
-NEXTAUTH_SECRET=...
+```env
+GITHUB_ID=your_github_client_id
+GITHUB_SECRET=your_github_client_secret
+NEXTAUTH_SECRET=your_random_secret
 NEXTAUTH_URL=http://localhost:3000
-GEMINI_API_KEY=...
+GEMINI_API_KEY=your_gemini_api_key
+```
 
 ---
 

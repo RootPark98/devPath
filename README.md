@@ -101,17 +101,23 @@ catch (e) {
 
 ## 🏗️ 프로젝트 구조
 
+```text
 app/
   api/
-    auth/[...nextauth]/route.ts
-    generate/route.ts
-    me/route.ts
+    auth/
+      [...nextauth]/
+        route.ts
+    generate/
+      route.ts
+    me/
+      route.ts
 
-components/devpath/
-  ProjectForm.tsx
-  PlanResult.tsx
-  ErrorBanner.tsx
-  HistoryPanel.tsx
+components/
+  devpath/
+    ProjectForm.tsx
+    PlanResult.tsx
+    ErrorBanner.tsx
+    HistoryPanel.tsx
 
 hooks/
   useHistory.ts
@@ -124,6 +130,7 @@ lib/
     client/
     history/
     types.ts
+```
 
 ---
 

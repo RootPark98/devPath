@@ -12,7 +12,8 @@ export type DevPathErrorCode =
   | "UPSTREAM_ERROR"
   | "PARSE_ERROR"
   | "SCHEMA_ERROR"
-  | "INTERNAL_ERROR";
+  | "INTERNAL_ERROR"
+  | "UNAUTHENTICATED";
 
 export type ApiSuccess<T> = {
   ok: true;

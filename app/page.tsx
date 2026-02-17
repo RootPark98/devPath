@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
+
 import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
 
-import { copyToClipboard } from "@/lib/devpath/clipboard";
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
-import { generatePlan, DevPathClientError } from "@/lib/devpath/client/generatePlan";
+import type { PlanHistoryItem } from "@/lib/devpath/history";
+import type { DevPathErrorCode } from "@/lib/devpath/api";
+
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
+import { copyToClipboard } from "@/lib/devpath/clipboard";
 
 import { useHistory } from "@/hooks/useHistory";
-import type { PlanHistoryItem } from "@/lib/devpath/history";
+import { useMe } from "@/hooks/useMe";
+
+import { generatePlan } from "@/lib/devpath/client/generatePlan";
+import { DevPathClientError } from "@/lib/devpath/client/errors";
 
 /**
  * Home은 프론트의 "컨트롤 타워"
@@ -31,9 +38,15 @@ export default function Home() {
   // UX 상태
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(
+    null
+  );
 
+  // 히스토리
   const { history, add, remove, clear } = useHistory();
+
+  // ✅ 인증 상태 (네트워크 분리 완료)
+  const { me, loadingMe } = useMe();
 
   // 언어 변경 시, 허용되지 않는 프레임워크 제거
   const handleLanguageChange = (next: Language) => {
@@ -50,6 +63,23 @@ export default function Home() {
   // AI 호출
   const handleSubmit = async () => {
     if (loading) return;
+
+    // 로그인 상태 확인 중
+    if (loadingMe) {
+      setError({
+        message: "로그인 상태를 확인 중입니다. 잠시 후 다시 시도해주세요.",
+      });
+      return;
+    }
+    // 로그인 필요
+    if (!me?.authenticated) {
+      setError({
+        code: "UNAUTHENTICATED",
+        message: "로그인이 필요합니다. 계속하려면 로그인해주세요.",
+      });
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setPlan(null);
@@ -68,14 +98,11 @@ export default function Home() {
 
     add(item);
     } catch (e: any) {
-      // ✅ 이제부터 “문자열”이 아니라 “코드”로 분기 가능
       if (e instanceof DevPathClientError) {
-        // (지금은 메시지만 노출) — 다음 단계에서 code별 UX를 강화하면 됨
-        setError(e.message);
-        return;
+        setError({ code: e.code, message: e.message });
+      } else {
+        setError({ message: e?.message ?? "알 수 없는 오류" });
       }
-
-      setError(e?.message ?? "알 수 없는 오류");
     } finally {
       setLoading(false);
     }
@@ -84,7 +111,6 @@ export default function Home() {
   // =========================
   // 히스토리 관련 핸들러
   // =========================
-
   const restoreHistory = (item: PlanHistoryItem) => {
     setLanguage(item.input.language);
     setLevel(item.input.level);
@@ -135,7 +161,19 @@ ${plan.interviewPoints.join("\n")}
         onSubmit={handleSubmit}
       />
 
-      {error && <ErrorBanner message={error} />}
+      {error && (
+        <ErrorBanner
+          title={error.code === "UNAUTHENTICATED" ? "로그인이 필요해요" : "오류"}
+          message={error.message}
+          actionLabel={error.code === "UNAUTHENTICATED" ? "로그인하기" : undefined}
+          disabled={loading}
+          onAction={
+            error.code === "UNAUTHENTICATED"
+              ? () => signIn("github", { callbackUrl: "/" })
+              : undefined
+          }
+        />
+      )}
 
       {plan && (
         <PlanResult

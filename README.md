@@ -60,19 +60,23 @@ DevPath는 useSession() 대신 /api/me 엔드포인트를 통해 로그인 여�
 
 성공 응답 예시:
 
+```json
 {
   "ok": true,
   "data": { ... }
 }
+```
 
 실패 응답 예시:
 
+```json
 {
   "ok": false,
   "code": "UNAUTHENTICATED",
   "message": "로그인이 필요합니다.",
   "detail": ...
 }
+```
 
 ---
 
@@ -87,15 +91,19 @@ DevPath는 useSession() 대신 /api/me 엔드포인트를 통해 로그인 여�
 
 예시 사용 방식:
 
+```ts
 const data = await generatePlan();
+```
 
 에러 처리:
 
+```ts
 catch (e) {
   if (e.code === "UNAUTHENTICATED") {
     // 로그인 필요 처리
   }
 }
+```
 
 ---
 

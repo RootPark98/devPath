@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 
+import AuthHeader from "@/components/auth/AuthHeader";
+
 import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
@@ -64,19 +66,8 @@ export default function Home() {
   const handleSubmit = async () => {
     if (loading) return;
 
-    // 로그인 상태 확인 중
-    if (loadingMe) {
-      setError({
-        message: "로그인 상태를 확인 중입니다. 잠시 후 다시 시도해주세요.",
-      });
-      return;
-    }
-    // 로그인 필요
+    // 🔒 방어 코드 (혹시라도 버튼 우회 호출될 경우 대비)
     if (!me?.authenticated) {
-      setError({
-        code: "UNAUTHENTICATED",
-        message: "로그인이 필요합니다. 계속하려면 로그인해주세요.",
-      });
       return;
     }
 
@@ -147,33 +138,28 @@ ${plan.interviewPoints.join("\n")}
 `.trim();
 
   return (
-    <main style={{ padding: 40, maxWidth: 720 }}>
-      <h1>DevPath</h1>
+    <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
+      <AuthHeader />
+
+      {error && (
+        <ErrorBanner
+          title="오류"
+          message={error.message}
+          disabled={loading}
+        />
+      )}
 
       <ProjectForm
         language={language}
         level={level}
         frameworks={frameworks}
         loading={loading}
+        authenticated={!!me?.authenticated}
         onChangeLanguage={handleLanguageChange}
         onChangeLevel={setLevel}
         onToggleFramework={toggleFramework}
         onSubmit={handleSubmit}
       />
-
-      {error && (
-        <ErrorBanner
-          title={error.code === "UNAUTHENTICATED" ? "로그인이 필요해요" : "오류"}
-          message={error.message}
-          actionLabel={error.code === "UNAUTHENTICATED" ? "로그인하기" : undefined}
-          disabled={loading}
-          onAction={
-            error.code === "UNAUTHENTICATED"
-              ? () => signIn("github", { callbackUrl: "/" })
-              : undefined
-          }
-        />
-      )}
 
       {plan && (
         <PlanResult

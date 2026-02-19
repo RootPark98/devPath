@@ -18,11 +18,12 @@ export default function ErrorBanner({
   return (
     <div
       style={{
-        marginTop: 16,
-        padding: 12,
-        border: "1px solid #ffb4b4",
+        background: "#ffecec",
+        border: "1px solid #f5c2c2",
+        padding: "12px 16px",
         borderRadius: 8,
-        background: "#fff5f5",
+        marginBottom: 16,
+        color: "#000",   // ✅ 추가
       }}
     >
       <div style={{ fontWeight: 700 }}>{title}</div>

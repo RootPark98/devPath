@@ -14,6 +14,8 @@ export default function ProjectForm(props: {
   frameworks: string[];
   loading: boolean;
 
+  authenticated: boolean;
+
   onChangeLanguage: (next: Language) => void;
   onChangeLevel: (next: Level) => void;
   onToggleFramework: (name: string) => void;
@@ -24,6 +26,7 @@ export default function ProjectForm(props: {
     level,
     frameworks,
     loading,
+    authenticated,
     onChangeLanguage,
     onChangeLevel,
     onToggleFramework,
@@ -35,7 +38,7 @@ export default function ProjectForm(props: {
   const availableFrameworks = useMemo(() => FRAMEWORKS_BY_LANGUAGE[language], [language]);
   
   // 버튼 활성화 조건
-  const canSubmit = !loading && !!language && !!level;
+  const canSubmit = !loading && !!language && !!level && authenticated;
 
   return (
     <>
@@ -94,8 +97,19 @@ export default function ProjectForm(props: {
         onClick={onSubmit}
         disabled={!canSubmit}
       >
-        {loading ? "AI가 설계 중입니다..." : "프로젝트 설계 생성"}
+        {loading
+          ? "AI가 설계 중입니다..."
+          : authenticated
+            ? "프로젝트 설계 생성"
+            : "로그인 후 생성 가능"}
       </button>
+
+      {/* ✅ 로그인 안내 문구 */}
+      {!authenticated && (
+        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
+          상단의 <strong>로그인</strong> 버튼을 눌러 진행해주세요.
+        </div>
+      )}
     </>
   );
 }

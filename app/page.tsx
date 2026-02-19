@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 
 import AuthHeader from "@/components/auth/AuthHeader";
 
@@ -23,14 +22,6 @@ import { useMe } from "@/hooks/useMe";
 import { generatePlan } from "@/lib/devpath/client/generatePlan";
 import { DevPathClientError } from "@/lib/devpath/client/errors";
 
-/**
- * Home은 프론트의 "컨트롤 타워"
- * - 상태 관리
- * - API 호출
- * - 히스토리 관리
- * - UI 컴포넌트 조립
- */
-
 export default function Home() {
   // 입력 상태
   const [language, setLanguage] = useState<Language>("React/Next.js");
@@ -40,15 +31,20 @@ export default function Home() {
   // UX 상태
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
-  const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(
-    null
-  );
+  const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(null);
 
-  // 히스토리
-  const { history, add, remove, clear } = useHistory();
-
-  // ✅ 인증 상태 (네트워크 분리 완료)
+  // ✅ 인증 상태
   const { me, loadingMe } = useMe();
+  const authenticated = !loadingMe && !!me?.authenticated;
+
+  // ✅ history state (DB)
+  const {
+    items: historyItems,
+    loading: historyLoading,
+    refresh: refreshHistory,
+    remove: removeHistory,
+    clear: clearHistory,
+  } = useHistory(authenticated);
 
   // 언어 변경 시, 허용되지 않는 프레임워크 제거
   const handleLanguageChange = (next: Language) => {
@@ -62,32 +58,23 @@ export default function Home() {
     setFrameworks((prev) => (prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]));
   };
 
-  // AI 호출
+  // AI 호출 (+ 서버에서 history 저장됨)
   const handleSubmit = async () => {
     if (loading) return;
 
-    // 🔒 방어 코드 (혹시라도 버튼 우회 호출될 경우 대비)
-    if (!me?.authenticated) {
-      return;
-    }
+    // 🔒 방어 코드
+    if (!authenticated) return;
 
     setLoading(true);
     setError(null);
     setPlan(null);
 
     try {
-    const data = await generatePlan({ language, level, frameworks });
+      const { plan: nextPlan } = await generatePlan({ language, level, frameworks }); // ✅ 응답 형태 변경 가정
+      setPlan(nextPlan);
 
-    setPlan(data);
-
-    const item: PlanHistoryItem = {
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
-      input: { language, level, frameworks },
-      output: data,
-    };
-
-    add(item);
+      // ✅ 서버가 저장했으니 목록만 동기화
+      await refreshHistory();
     } catch (e: any) {
       if (e instanceof DevPathClientError) {
         setError({ code: e.code, message: e.message });
@@ -99,9 +86,7 @@ export default function Home() {
     }
   };
 
-  // =========================
-  // 히스토리 관련 핸들러
-  // =========================
+  // 히스토리 복원
   const restoreHistory = (item: PlanHistoryItem) => {
     setLanguage(item.input.language);
     setLevel(item.input.level);
@@ -141,20 +126,14 @@ ${plan.interviewPoints.join("\n")}
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
       <AuthHeader />
 
-      {error && (
-        <ErrorBanner
-          title="오류"
-          message={error.message}
-          disabled={loading}
-        />
-      )}
+      {error && <ErrorBanner title="오류" message={error.message} disabled={loading} />}
 
       <ProjectForm
         language={language}
         level={level}
         frameworks={frameworks}
         loading={loading}
-        authenticated={!!me?.authenticated}
+        authenticated={authenticated} // ✅ 여기 통일
         onChangeLanguage={handleLanguageChange}
         onChangeLevel={setLevel}
         onToggleFramework={toggleFramework}
@@ -186,10 +165,13 @@ ${plan.interviewPoints.join("\n")}
       )}
 
       <HistoryPanel
-        items={history}
+        items={historyItems}          // ✅ 변수명 수정
         onRestore={restoreHistory}
-        onDelete={remove}
-        onClear={clear}
+        onDelete={(id) => {
+          removeHistory(id);
+          }
+        }
+        onClear={clearHistory}        // ✅ 변수명 수정
       />
     </main>
   );

@@ -13,7 +13,10 @@ export type DevPathErrorCode =
   | "PARSE_ERROR"
   | "SCHEMA_ERROR"
   | "INTERNAL_ERROR"
-  | "UNAUTHENTICATED";
+  | "UNAUTHENTICATED"
+  | "NOT_FOUND"
+  | "FORBIDDEN"
+  | "BAD_REQUEST";
 
 export type ApiSuccess<T> = {
   ok: true;

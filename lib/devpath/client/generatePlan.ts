@@ -13,12 +13,17 @@ export type GeneratePlanInput = {
   frameworks: string[];
 };
 
-export async function generatePlan(input: GeneratePlanInput): Promise<GeneratedPlan> {
+export type GeneratePlanResponse = {
+  plan: GeneratedPlan;
+  historyId: string;
+};
+
+export async function generatePlan(input: GeneratePlanInput): Promise<GeneratePlanResponse> {
   const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 
-  return readApiResponse<GeneratedPlan>(res);
+  return readApiResponse<GeneratePlanResponse>(res);
 }

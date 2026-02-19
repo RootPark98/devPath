@@ -40,7 +40,12 @@ export default function HistoryPanel({
 
             <div style={{ marginTop: 4 }}>
               <button onClick={() => onRestore(item)}>복원</button>
-              <button onClick={() => onDelete(item.id)} style={{ marginLeft: 8 }}>
+              <button 
+                type="button"
+                onClick={() => {
+                  onDelete(item.id);}
+                  } 
+                  style={{ marginLeft: 8 }}>
                 삭제
               </button>
             </div>

@@ -23,6 +23,10 @@ model User {
   accounts      Account[]
   sessions      Session[]
   histories     History[]
+
+  creditBalance CreditBalance?
+  creditLedgers CreditLedger[]
+  paymentIntents PaymentIntent[]
 }
 
 model Account {
@@ -70,4 +74,81 @@ model History {
   output    Json
 
   createdAt DateTime @default(now())
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
+enum LedgerReason {
+  TOPUP      // 충전(결제 성공)
+  USE        // 사용(생성 요청 등)
+  REFUND     // 환불로 인한 차감/복구
+  ADJUST     // 운영자 조정(추후)
+}
+
+model CreditBalance {
+  userId    String  @id
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Int     @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model CreditLedger {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  delta     Int      // +적립 / -차감
+  reason    LedgerReason
+
+  // 어떤 사건(결제/사용/환불)에 의해 발생했는지 추적
+  refType   String?
+  refId     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([refType, refId])
+}
+
+model PaymentIntent {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider    String        @default("portone")
+
+  // 포트원/주문번호로 자주 쓰는 값: merchant_uid
+  merchantUid String        @unique
+
+  // 금액(원화 KRW 기준)과 지급할 크레딧
+  amount      Int
+  credits     Int
+
+  status      PaymentStatus @default(PENDING)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model WebhookEvent {
+  id               String   @id @default(cuid())
+  provider         String   @default("portone")
+
+  // “이 이벤트는 이미 처리했는가?”를 보장하는 키 (idempotency)
+  providerEventId  String   @unique
+
+  // ✅ 어떤 결제(paymentId)에 대한 이벤트인지 추적용
+  paymentId       String?
+
+  receivedAt       DateTime @default(now())
+  processedAt      DateTime?
 }

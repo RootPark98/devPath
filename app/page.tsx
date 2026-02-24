@@ -8,6 +8,7 @@ import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
+import CreditCTA from "@/components/billing/CreditCTA";
 
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
 import type { PlanHistoryItem } from "@/lib/devpath/history";
@@ -125,9 +126,9 @@ ${plan.interviewPoints.join("\n")}
   return (
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
       <AuthHeader />
-
+      <CreditCTA />
       {error && <ErrorBanner title="오류" message={error.message} disabled={loading} />}
-
+      
       <ProjectForm
         language={language}
         level={level}

@@ -1,23 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { DEVPATH_EVENTS } from "@/lib/devpath/events";
 
 export default function CreditCTA() {
   const [balance, setBalance] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/billing/credits")
-      .then((r) => r.json())
-      .then((j) => {
-        if (!cancelled && j?.ok) setBalance(j.data.balance);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+  const refresh = useCallback(async () => {
+    try {
+      const r = await fetch("/api/billing/credits", { cache: "no-store" });
+      const j = await r.json().catch(() => null);
+      if (j?.ok) setBalance(j.data.balance);
+    } catch {}
   }, []);
+
+  useEffect(() => {
+    refresh();
+
+    const onRefresh = () => refresh();
+    window.addEventListener(DEVPATH_EVENTS.creditsUpdated, onRefresh);
+
+    return () => {
+      window.removeEventListener(DEVPATH_EVENTS.creditsUpdated, onRefresh);
+    };
+  }, [refresh]);
 
   return (
     <div className="mb-4 flex items-center justify-between rounded-md border p-3">

@@ -16,6 +16,7 @@ import type { DevPathErrorCode } from "@/lib/devpath/api";
 
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
 import { copyToClipboard } from "@/lib/devpath/clipboard";
+import { DEVPATH_EVENTS } from "@/lib/devpath/events";
 
 import { useHistory } from "@/hooks/useHistory";
 import { useMe } from "@/hooks/useMe";
@@ -76,6 +77,9 @@ export default function Home() {
 
       // ✅ 서버가 저장했으니 목록만 동기화
       await refreshHistory();
+
+      // ✅ 크레딧 잔고 갱신 트리거 (CreditCTA가 이 이벤트 듣고 refetch)
+      window.dispatchEvent(new Event((DEVPATH_EVENTS.creditsUpdated)));
     } catch (e: any) {
       if (e instanceof DevPathClientError) {
         setError({ code: e.code, message: e.message });

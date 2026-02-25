@@ -16,7 +16,8 @@ export type DevPathErrorCode =
   | "UNAUTHENTICATED"
   | "NOT_FOUND"
   | "FORBIDDEN"
-  | "BAD_REQUEST";
+  | "BAD_REQUEST"
+  | "INSUFFICIENT_CREDITS";
 
 export type ApiSuccess<T> = {
   ok: true;

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { loadPortOne } from "@/lib/portone.browser";
 
 type PackageType = "starter" | "pro" | "max";
 
 export function BuyCreditsButton({ packageType }: { packageType: PackageType }) {
+  const router = useRouter(); // 컴포넌트 최상단에서만.
   const [loading, setLoading] = useState(false);
 
   const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID!;
@@ -58,13 +60,12 @@ export function BuyCreditsButton({ packageType }: { packageType: PackageType }) 
       // 4) 응답 처리 (중요: 최종 적립은 "웹훅"에서)
       // requestPayment 응답에는 txId/paymentId/에러코드 등이 있음 :contentReference[oaicite:8]{index=8}
       if (response?.code) {
-        alert(response?.message ?? "결제 실패/취소");
+        alert(response?.message ?? "결제가 취소/실패했습니다.");
         return;
       }
 
-      // 결제 성공으로 보이더라도, 크레딧 적립은 웹훅 기준이라
-      // UX는 "결제 완료 확인 중" 정도로 안내하고, 잔고는 poll/refresh로 갱신 추천
-      alert("결제 요청이 완료되었습니다. 잠시 후 크레딧이 반영됩니다.");
+      // 성공: 대기 화면으로
+      router.push(`/billing/wait?paymentId=${encodeURIComponent(paymentId)}`);
     } catch (e: any) {
       console.error(e);
       alert(e?.message ?? "결제 처리 중 오류");

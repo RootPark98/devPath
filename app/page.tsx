@@ -8,6 +8,7 @@ import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
+import ExportDropdown from "@/components/devpath/ExportDropdown"
 import CreditCTA from "@/components/billing/CreditCTA";
 
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
@@ -146,27 +147,46 @@ ${plan.interviewPoints.join("\n")}
       />
 
       {plan && (
-        <PlanResult
-          plan={plan}
-          input={{ language, level, frameworks }}
-          onCopyAll={async () => {
-            if (!fullCopyText) return;
-            try {
-              await copyToClipboard(fullCopyText);
-              alert("복사 완료!");
-            } catch {
-              alert("복사 실패");
-            }
-          }}
-          onCopyReadme={async () => {
-            try {
-              await copyToClipboard(plan.readmeDraft);
-              alert("복사 완료!");
-            } catch {
-              alert("복사 실패");
-            }
-          }}
-        />
+        <>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+            <ExportDropdown
+              title={plan.projectTitle}
+              fullText={fullCopyText ?? ""}
+              readmeText={plan.readmeDraft}
+              onCopyAll={async () => {
+                if (!fullCopyText) return;
+                await copyToClipboard(fullCopyText);
+                alert("복사 완료!");
+              }}
+              onCopyReadme={async () => {
+                await copyToClipboard(plan.readmeDraft);
+                alert("복사 완료!");
+              }}
+            />
+          </div>
+
+          <PlanResult
+            plan={plan}
+            input={{ language, level, frameworks }}
+            onCopyAll={async () => {
+              if (!fullCopyText) return;
+              try {
+                await copyToClipboard(fullCopyText);
+                alert("복사 완료!");
+              } catch {
+                alert("복사 실패");
+              }
+            }}
+            onCopyReadme={async () => {
+              try {
+                await copyToClipboard(plan.readmeDraft);
+                alert("복사 완료!");
+              } catch {
+                alert("복사 실패");
+              }
+            }}
+          />
+        </>
       )}
 
       <HistoryPanel

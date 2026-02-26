@@ -1,6 +1,15 @@
 import { BuyCreditsButton } from "@/components/billing/BuyCreditsButton";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/authOptions";
 
-export default function BillingPage() {
+export default async function BillingPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect("/login?callbackUrl=/credit");
+  }
+
   return (
     <main className="p-6 space-y-4">
       <h1 className="text-xl font-semibold">크레딧 구매</h1>

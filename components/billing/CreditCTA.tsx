@@ -26,14 +26,49 @@ export default function CreditCTA() {
     };
   }, [refresh]);
 
+  const lowBalance = balance !== null && balance <= 5;
+
   return (
-    <div className="mb-4 flex items-center justify-between rounded-md border p-3">
-      <div className="text-sm">
-        잔고: <b>{balance === null ? "…" : balance.toLocaleString()}</b>
+    <div className="mb-6 rounded-2xl border bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        {/* Left */}
+        <div>
+          <p className="text-xs uppercase tracking-wide text-neutral-500">
+            Available Credits
+          </p>
+
+          <div className="mt-1 flex items-baseline gap-2">
+            <span
+              className={`text-2xl font-bold ${
+                lowBalance ? "text-red-500" : "text-black"
+              }`}
+            >
+              {balance === null ? "…" : balance.toLocaleString()}
+            </span>
+            <span className="text-sm text-neutral-500">credits</span>
+          </div>
+
+          {lowBalance && (
+            <p className="mt-1 text-xs text-red-500">
+              크레딧이 거의 소진되었습니다.
+            </p>
+          )}
+        </div>
+
+        {/* Right */}
+        <Link
+          href="/billing"
+          className="
+            inline-flex items-center gap-2
+            rounded-xl bg-black px-4 py-2
+            text-sm font-semibold text-white
+            hover:opacity-90 active:opacity-80
+            transition
+          "
+        >
+          ⚡ 충전하기
+        </Link>
       </div>
-      <Link href="/billing" className="rounded-md border px-3 py-2 text-sm">
-        크레딧 충전
-      </Link>
     </div>
   );
 }

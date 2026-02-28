@@ -1,12 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { LANGUAGES, LEVELS, type Language, type Level } from "@/lib/devpath/types";
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
-
-// 이 컴포넌트는 "입력 UI만 담당"
-// 👉 상태는 부모(page.tsx)가 관리하고
-// 👉 이 컴포넌트는 props로 받아서 보여주기만 한다.
 
 export default function ProjectForm(props: {
   language: Language;
@@ -33,83 +30,117 @@ export default function ProjectForm(props: {
     onSubmit,
   } = props;
 
-  // 언어가 바뀌면 해당 언어의 프레임워크 목록 계산
-  // useMemo를 쓰면 불필요한 재계산을 방지
   const availableFrameworks = useMemo(() => FRAMEWORKS_BY_LANGUAGE[language], [language]);
-  
-  // 버튼 활성화 조건
   const canSubmit = !loading && !!language && !!level && authenticated;
 
   return (
-    <>
-      <div style={{ marginTop: 12 }}>
-        <label>언어/스택</label>
-        <select
-          value={language}
-          onChange={(e) => onChangeLanguage(e.target.value as Language)}
-          style={{ display: "block", width: "100%", marginTop: 6, padding: 8 }}
-        >
-          {LANGUAGES.map((l) => (
-            <option key={l} value={l}>
-              {l}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ marginTop: 12 }}>
-        <label>난이도</label>
-        <select
-          value={level}
-          onChange={(e) => onChangeLevel(e.target.value as Level)}
-          style={{ display: "block", width: "100%", marginTop: 6, padding: 8 }}
-        >
-          {LEVELS.map((lv) => (
-            <option key={lv} value={lv}>
-              {lv}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ marginTop: 16 }}>
-        <div style={{ fontWeight: 600, marginBottom: 6 }}>프레임워크/라이브러리</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {availableFrameworks.map((fw) => (
-            <label key={fw} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={frameworks.includes(fw)}
-                onChange={() => onToggleFramework(fw)}
-                disabled={loading}
-              />
-              {fw}
-            </label>
-          ))}
+    <div className="rounded-2xl border bg-white p-5 shadow-sm">
+      <div className="space-y-5">
+        {/* Language */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">언어/스택</label>
+          <select
+            value={language}
+            onChange={(e) => onChangeLanguage(e.target.value as Language)}
+            className="w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
+            disabled={loading}
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </select>
         </div>
-        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
-          선택은 선택사항이에요. (비워도 생성됩니다)
+
+        {/* Level */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold">난이도</label>
+          <select
+            value={level}
+            onChange={(e) => onChangeLevel(e.target.value as Level)}
+            className="w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
+            disabled={loading}
+          >
+            {LEVELS.map((lv) => (
+              <option key={lv} value={lv}>
+                {lv}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Frameworks */}
+        <div className="space-y-2">
+          <div className="text-sm font-semibold">프레임워크/라이브러리</div>
+
+          <div className="flex flex-wrap gap-2">
+            {availableFrameworks.map((fw) => {
+              const checked = frameworks.includes(fw);
+              return (
+                <button
+                  type="button"
+                  key={fw}
+                  onClick={() => onToggleFramework(fw)}
+                  disabled={loading}
+                  className={[
+                    "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                    checked ? "bg-black text-white border-black" : "bg-white hover:bg-neutral-50",
+                    loading ? "opacity-60" : "",
+                  ].join(" ")}
+                >
+                  {fw}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-xs text-neutral-500">
+            선택은 선택사항이에요. (비워도 생성됩니다)
+          </p>
+        </div>
+
+        {/* Submit */}
+        <div className="space-y-2">
+          <button
+            onClick={onSubmit}
+            disabled={!canSubmit}
+            className={[
+              "w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+              canSubmit
+                ? "bg-black text-white hover:opacity-90 active:opacity-80"
+                : "border bg-neutral-50 text-neutral-500",
+            ].join(" ")}
+          >
+            {loading
+              ? "AI가 설계 중입니다..."
+              : authenticated
+                ? "프로젝트 설계 생성"
+                : "로그인 후 생성 가능"}
+          </button>
+
+          {!authenticated && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border bg-white px-3 py-2 text-xs text-neutral-600">
+              <span>
+                상단의 <b>로그인</b> 버튼을 눌러 진행해주세요.
+              </span>
+              <Link href="/login" className="font-semibold underline">
+                로그인
+              </Link>
+            </div>
+          )}
+
+          {/* (선택) 크레딧 충전 유도는 헤더에 있으니 여기선 “링크만” 필요할 때만 */}
+          {authenticated && (
+            <div className="text-center text-xs text-neutral-500">
+              크레딧 잔고는 상단에서 확인할 수 있어요.{" "}
+              <Link href="/billing" className="underline">
+                충전하기
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-
-      <button
-        style={{ marginTop: 16, padding: "10px 12px" }}
-        onClick={onSubmit}
-        disabled={!canSubmit}
-      >
-        {loading
-          ? "AI가 설계 중입니다..."
-          : authenticated
-            ? "프로젝트 설계 생성"
-            : "로그인 후 생성 가능"}
-      </button>
-
-      {/* ✅ 로그인 안내 문구 */}
-      {!authenticated && (
-        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
-          상단의 <strong>로그인</strong> 버튼을 눌러 진행해주세요.
-        </div>
-      )}
-    </>
+    </div>
   );
 }

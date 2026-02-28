@@ -12,7 +12,7 @@ export default function PlanResult(props: {
   const { plan, input, onCopyAll, onCopyReadme } = props;
 
   return (
-    <section className="mx-auto mt-6 max-w-5xl px-4 pb-10">
+    <section id="plan-result" className="mx-auto mt-6 max-w-5xl px-4 pb-10">
       {/* Header */}
       <header className="space-y-2">
         <div className="flex flex-wrap items-start justify-between gap-3">

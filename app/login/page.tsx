@@ -5,32 +5,56 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <main style={{ maxWidth: 520, margin: "60px auto", padding: 16 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>DevPath 로그인</h1>
-      <p style={{ opacity: 0.8, marginBottom: 20 }}>
-        GitHub 또는 Google로 로그인하세요.
-      </p>
+    <main className="flex min-h-[70vh] items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
 
-      <div style={{ display: "grid", gap: 10 }}>
-        <button
-          onClick={() => signIn("github", { callbackUrl: "/" })}
-          style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}
-        >
-          GitHub로 로그인
-        </button>
+        {/* Header */}
+        <div className="space-y-2 text-center">
+          <h1 className="text-2xl font-bold tracking-tight">
+            DevPath 로그인
+          </h1>
+          <p className="text-sm text-neutral-600">
+            프로젝트 설계를 생성하려면 로그인하세요.
+          </p>
+        </div>
 
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
-          style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}
-        >
-          Google로 로그인
-        </button>
-      </div>
+        {/* Login Buttons */}
+        <div className="mt-8 space-y-3">
+          <button
+            onClick={() => signIn("github", { callbackUrl: "/" })}
+            className="w-full rounded-xl border px-4 py-3 text-sm font-semibold transition hover:bg-neutral-50 active:bg-neutral-100"
+          >
+            GitHub로 로그인
+          </button>
 
-      <div style={{ marginTop: 18 }}>
-        <Link href="/" style={{ textDecoration: "underline" }}>
-          홈으로 돌아가기
-        </Link>
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+            className="w-full rounded-xl border px-4 py-3 text-sm font-semibold transition hover:bg-neutral-50 active:bg-neutral-100"
+          >
+            Google로 로그인
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="my-6 flex items-center gap-3 text-xs text-neutral-400">
+          <div className="h-px flex-1 bg-neutral-200" />
+          안전한 OAuth 로그인
+          <div className="h-px flex-1 bg-neutral-200" />
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-neutral-500">
+          로그인하면 DevPath 이용약관에 동의하게 됩니다.
+        </div>
+
+        <div className="mt-4 text-center">
+          <Link
+            href="/"
+            className="text-xs font-medium text-neutral-600 underline hover:text-black"
+          >
+            홈으로 돌아가기
+          </Link>
+        </div>
       </div>
     </main>
   );

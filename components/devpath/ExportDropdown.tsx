@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function downloadTextFile(filename: string, text: string) {
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -36,7 +36,7 @@ async function downloadPdf(title: string, text: string) {
 export default function ExportDropdown({
   title,
   fullText,
-  readmeText,
+  readmeText, // (현재 드롭다운에서는 직접 사용 안 하지만 props 유지)
   onCopyAll,
   onCopyReadme,
 }: {
@@ -47,83 +47,123 @@ export default function ExportDropdown({
   onCopyReadme: () => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   const disabled = !fullText?.trim();
 
+  // ✅ outside click 닫기 + ESC 닫기
+  useEffect(() => {
+    if (!open) return;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const el = rootRef.current;
+      if (!el) return;
+      if (!el.contains(e.target as Node)) setOpen(false);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  const close = () => setOpen(false);
+
   return (
-    <div style={{ position: "relative" }}>
+    <div ref={rootRef} className="relative inline-block">
       <button
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        style={{
-          padding: "8px 12px",
-          border: "1px solid #ddd",
-          borderRadius: 10,
-          background: "white",
-          cursor: disabled ? "not-allowed" : "pointer",
-        }}
+        className={[
+          disabled ? "opacity-60 cursor-not-allowed" : "",
+          "dp-btn",
+        ].join(" ")}
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
-        내보내기 ▾
+        내보내기 <span className="text-xs">▾</span>
       </button>
 
       {open && !disabled && (
         <div
-          style={{
-            position: "absolute",
-            right: 0,
-            marginTop: 8,
-            width: 220,
-            border: "1px solid #eee",
-            borderRadius: 12,
-            background: "white",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-            overflow: "hidden",
-            zIndex: 50,
-          }}
+          role="menu"
+          className="
+            absolute right-0 mt-2 w-56 overflow-hidden
+            rounded-2xl border bg-white shadow-lg
+            border-neutral-200
+            dark:border-neutral-800 dark:bg-neutral-950
+            z-50
+          "
         >
-          <button
-            style={{ width: "100%", padding: 12, textAlign: "left", border: 0, background: "white" }}
+          <MenuButton
             onClick={async () => {
-              setOpen(false);
+              close();
               await onCopyAll();
             }}
           >
             전체 복사
-          </button>
+          </MenuButton>
 
-          <button
-            style={{ width: "100%", padding: 12, textAlign: "left", border: 0, background: "white" }}
+          <MenuButton
             onClick={async () => {
-              setOpen(false);
+              close();
               await onCopyReadme();
             }}
           >
             README만 복사
-          </button>
+          </MenuButton>
 
-          <div style={{ height: 1, background: "#f2f2f2" }} />
+          <div className="h-px bg-neutral-100 dark:bg-neutral-900" />
 
-          <button
-            style={{ width: "100%", padding: 12, textAlign: "left", border: 0, background: "white" }}
+          <MenuButton
             onClick={() => {
-              setOpen(false);
+              close();
               downloadTextFile(`${title || "devpath-plan"}.txt`, fullText);
             }}
           >
             TXT 다운로드
-          </button>
+          </MenuButton>
 
-          <button
-            style={{ width: "100%", padding: 12, textAlign: "left", border: 0, background: "white" }}
+          <MenuButton
             onClick={async () => {
-              setOpen(false);
+              close();
               await downloadPdf(title, fullText);
             }}
           >
             PDF 다운로드
-          </button>
+          </MenuButton>
         </div>
       )}
     </div>
+  );
+}
+
+function MenuButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void | Promise<void>;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className="
+        w-full px-4 py-3 text-left text-sm font-medium
+        text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100
+        dark:text-neutral-100 dark:hover:bg-neutral-900/60 dark:active:bg-neutral-900
+      "
+    >
+      {children}
+    </button>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BuyCreditsButton } from "@/components/billing/BuyCreditsButton";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -46,6 +47,15 @@ export default async function BillingPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
+      {/* 🔙 Top back link */}
+      <div className="mb-6">
+        <Link
+          href="/"
+          className="text-sm text-neutral-500 hover:text-black transition"
+        >
+          ← 홈으로 돌아가기
+        </Link>
+      </div>
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight">크레딧 구매</h1>
         <p className="text-sm text-neutral-600">

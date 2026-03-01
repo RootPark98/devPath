@@ -1,18 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
 import { LANGUAGES, LEVELS, type Language, type Level } from "@/lib/devpath/types";
 import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
+import Link from "next/link";
 
 export default function ProjectForm(props: {
   language: Language;
   level: Level;
   frameworks: string[];
   loading: boolean;
-
   authenticated: boolean;
-
   onChangeLanguage: (next: Language) => void;
   onChangeLevel: (next: Level) => void;
   onToggleFramework: (name: string) => void;
@@ -31,19 +29,34 @@ export default function ProjectForm(props: {
   } = props;
 
   const availableFrameworks = useMemo(() => FRAMEWORKS_BY_LANGUAGE[language], [language]);
+
+  // 버튼 활성화 조건
   const canSubmit = !loading && !!language && !!level && authenticated;
 
   return (
-    <div className="rounded-2xl border bg-white p-5 shadow-sm">
+    <section className="dp-card">
       <div className="space-y-5">
+        {/* Title */}
+        <div className="space-y-1">
+          <h2 className="dp-card-title">프로젝트 입력</h2>
+          <p className="text-sm dp-muted">
+            언어/난이도를 선택하고, 원하는 프레임워크를 골라 설계를 생성하세요.
+          </p>
+        </div>
+
         {/* Language */}
-        <div className="space-y-2">
-          <label className="text-sm font-semibold">언어/스택</label>
+        <Field label="언어/스택">
           <select
             value={language}
             onChange={(e) => onChangeLanguage(e.target.value as Language)}
-            className="w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
             disabled={loading}
+            className="
+              w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none
+              border-neutral-200 text-neutral-900
+              focus:ring-2 focus:ring-black/10
+              disabled:opacity-60
+              dark:bg-neutral-950/40 dark:text-neutral-50 dark:border-neutral-800
+            "
           >
             {LANGUAGES.map((l) => (
               <option key={l} value={l}>
@@ -51,16 +64,21 @@ export default function ProjectForm(props: {
               </option>
             ))}
           </select>
-        </div>
+        </Field>
 
         {/* Level */}
-        <div className="space-y-2">
-          <label className="text-sm font-semibold">난이도</label>
+        <Field label="난이도">
           <select
             value={level}
             onChange={(e) => onChangeLevel(e.target.value as Level)}
-            className="w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10"
             disabled={loading}
+            className="
+              w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none
+              border-neutral-200 text-neutral-900
+              focus:ring-2 focus:ring-black/10
+              disabled:opacity-60
+              dark:bg-neutral-950/40 dark:text-neutral-50 dark:border-neutral-800
+            "
           >
             {LEVELS.map((lv) => (
               <option key={lv} value={lv}>
@@ -68,25 +86,26 @@ export default function ProjectForm(props: {
               </option>
             ))}
           </select>
-        </div>
+        </Field>
 
         {/* Frameworks */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold">프레임워크/라이브러리</div>
-
+        <Field label="프레임워크/라이브러리">
           <div className="flex flex-wrap gap-2">
             {availableFrameworks.map((fw) => {
               const checked = frameworks.includes(fw);
+
               return (
                 <button
-                  type="button"
                   key={fw}
+                  type="button"
                   onClick={() => onToggleFramework(fw)}
                   disabled={loading}
                   className={[
                     "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                    checked ? "bg-black text-white border-black" : "bg-white hover:bg-neutral-50",
-                    loading ? "opacity-60" : "",
+                    "disabled:opacity-60",
+                    checked
+                      ? "bg-black text-white border-black dark:bg-neutral-50 dark:text-neutral-900 dark:border-neutral-50"
+                      : "bg-white border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 dark:bg-neutral-950/40 dark:border-neutral-800 dark:hover:bg-neutral-900/60 dark:active:bg-neutral-900",
                   ].join(" ")}
                 >
                   {fw}
@@ -95,10 +114,10 @@ export default function ProjectForm(props: {
             })}
           </div>
 
-          <p className="text-xs text-neutral-500">
+          <p className="mt-2 text-xs dp-muted">
             선택은 선택사항이에요. (비워도 생성됩니다)
           </p>
-        </div>
+        </Field>
 
         {/* Submit */}
         <div className="space-y-2">
@@ -108,8 +127,8 @@ export default function ProjectForm(props: {
             className={[
               "w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition",
               canSubmit
-                ? "bg-black text-white hover:opacity-90 active:opacity-80"
-                : "border bg-neutral-50 text-neutral-500",
+                ? "bg-black text-white hover:opacity-90 active:opacity-80 disabled:opacity-50"
+                : "border border-neutral-200 bg-neutral-50 text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950/40 dark:text-neutral-400",
             ].join(" ")}
           >
             {loading
@@ -119,8 +138,9 @@ export default function ProjectForm(props: {
                 : "로그인 후 생성 가능"}
           </button>
 
+          {/* Login hint */}
           {!authenticated && (
-            <div className="flex items-center justify-between gap-3 rounded-xl border bg-white px-3 py-2 text-xs text-neutral-600">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950/40 dark:text-neutral-300">
               <span>
                 상단의 <b>로그인</b> 버튼을 눌러 진행해주세요.
               </span>
@@ -130,9 +150,9 @@ export default function ProjectForm(props: {
             </div>
           )}
 
-          {/* (선택) 크레딧 충전 유도는 헤더에 있으니 여기선 “링크만” 필요할 때만 */}
+          {/* Optional hint */}
           {authenticated && (
-            <div className="text-center text-xs text-neutral-500">
+            <div className="text-center text-xs dp-muted">
               크레딧 잔고는 상단에서 확인할 수 있어요.{" "}
               <Link href="/billing" className="underline">
                 충전하기
@@ -141,6 +161,21 @@ export default function ProjectForm(props: {
           )}
         </div>
       </div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-semibold">{label}</label>
+      {children}
     </div>
   );
 }

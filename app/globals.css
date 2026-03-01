@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer components {
+  .dp-card {
+    @apply rounded-2xl border p-5 shadow-sm
+      bg-white text-neutral-900 border-neutral-200
+      dark:bg-neutral-900 dark:text-neutral-50 dark:border-neutral-800;
+  }
+
+  .dp-card-title {
+    @apply text-base font-semibold;
+  }
+
+  .dp-muted {
+    @apply text-neutral-600 dark:text-neutral-300;
+  }
+
+  .dp-btn {
+    @apply inline-flex items-center justify-center rounded-xl border px-3 py-2 text-sm font-medium
+      hover:bg-neutral-50 active:bg-neutral-100
+      dark:hover:bg-neutral-800/60 dark:active:bg-neutral-800;
+  }
+
+  .dp-btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white
+      hover:opacity-90 active:opacity-80 disabled:opacity-50;
+  }
+}

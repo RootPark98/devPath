@@ -49,7 +49,7 @@ export default async function BillingPage() {
     <main className="mx-auto max-w-5xl px-4 py-10">
       {/* 🔙 Back */}
       <div className="mb-6">
-        <Link href="/" className="text-sm dp-muted hover:text-black dark:hover:text-white transition">
+        <Link href="/app" className="text-sm dp-muted hover:text-black dark:hover:text-white transition">
           ← 홈으로 돌아가기
         </Link>
       </div>

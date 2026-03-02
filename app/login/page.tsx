@@ -27,7 +27,7 @@ export default function LoginPage() {
           <div className="mt-8 space-y-3">
             {/* GitHub (primary) */}
             <button
-              onClick={() => signIn("github", { callbackUrl: "/" })}
+              onClick={() => signIn("github", { callbackUrl: "/app" })}
               className="w-full dp-btn"
             >
               GitHub로 로그인
@@ -35,7 +35,7 @@ export default function LoginPage() {
 
             {/* Google (secondary) */}
             <button
-              onClick={() => signIn("google", { callbackUrl: "/" })}
+              onClick={() => signIn("google", { callbackUrl: "/app" })}
               className="w-full dp-btn"
             >
               Google로 로그인

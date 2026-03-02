@@ -56,7 +56,7 @@ export default function AuthHeader({ title = "DevPath", className }: Props) {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         {/* Brand */}
         <Link
-          href="/"
+          href="/app"
           className="text-lg font-semibold tracking-tight hover:opacity-80 transition"
         >
           {title}

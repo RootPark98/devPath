@@ -1,203 +1,85 @@
-"use client";
+// app/page.tsx
+import Link from "next/link";
 
-import { useState } from "react";
-
-import AuthHeader from "@/components/auth/AuthHeader";
-
-import ProjectForm from "@/components/devpath/ProjectForm";
-import PlanResult from "@/components/devpath/PlanResult";
-import ErrorBanner from "@/components/devpath/ErrorBanner";
-import HistoryPanel from "@/components/devpath/HistoryPanel";
-import ExportDropdown from "@/components/devpath/ExportDropdown"
-import CreditCTA from "@/components/billing/CreditCTA";
-
-import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
-import type { PlanHistoryItem } from "@/lib/devpath/history";
-import type { DevPathErrorCode } from "@/lib/devpath/api";
-
-import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
-import { copyToClipboard } from "@/lib/devpath/clipboard";
-import { DEVPATH_EVENTS } from "@/lib/devpath/events";
-
-import { useHistory } from "@/hooks/useHistory";
-import { useMe } from "@/hooks/useMe";
-
-import { generatePlan } from "@/lib/devpath/client/generatePlan";
-import { DevPathClientError } from "@/lib/devpath/client/errors";
-
-export default function Home() {
-  // 입력 상태
-  const [language, setLanguage] = useState<Language>("React/Next.js");
-  const [level, setLevel] = useState<Level>("초급");
-  const [frameworks, setFrameworks] = useState<string[]>([]);
-
-  // UX 상태
-  const [loading, setLoading] = useState(false);
-  const [plan, setPlan] = useState<GeneratedPlan | null>(null);
-  const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(null);
-
-  // ✅ 인증 상태
-  const { me, loadingMe } = useMe();
-  const authenticated = !loadingMe && !!me?.authenticated;
-
-  // ✅ history state (DB)
-  const {
-    items: historyItems,
-    loading: historyLoading,
-    refresh: refreshHistory,
-    remove: removeHistory,
-    clear: clearHistory,
-  } = useHistory(authenticated);
-
-  // 언어 변경 시, 허용되지 않는 프레임워크 제거
-  const handleLanguageChange = (next: Language) => {
-    setLanguage(next);
-    const nextSet = new Set(FRAMEWORKS_BY_LANGUAGE[next]);
-    setFrameworks((prev) => prev.filter((f) => nextSet.has(f)));
-  };
-
-  // 프레임워크 토글
-  const toggleFramework = (name: string) => {
-    setFrameworks((prev) => (prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]));
-  };
-
-  // AI 호출 (+ 서버에서 history 저장됨)
-  const handleSubmit = async () => {
-    if (loading) return;
-
-    // 🔒 방어 코드
-    if (!authenticated) return;
-
-    setLoading(true);
-    setError(null);
-    setPlan(null);
-
-    try {
-      const { plan: nextPlan } = await generatePlan({ language, level, frameworks }); // ✅ 응답 형태 변경 가정
-      setPlan(nextPlan);
-
-      // ✅ 서버가 저장했으니 목록만 동기화
-      await refreshHistory();
-
-      // ✅ 크레딧 잔고 갱신 트리거 (CreditCTA가 이 이벤트 듣고 refetch)
-      window.dispatchEvent(new Event((DEVPATH_EVENTS.creditsUpdated)));
-    } catch (e: any) {
-      if (e instanceof DevPathClientError) {
-        setError({ code: e.code, message: e.message });
-      } else {
-        setError({ message: e?.message ?? "알 수 없는 오류" });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 히스토리 복원
-  const restoreHistory = (item: PlanHistoryItem) => {
-    setLanguage(item.input.language);
-    setLevel(item.input.level);
-    setFrameworks(item.input.frameworks);
-    setPlan(item.output);
-    setError(null);
-  };
-
-  const fullCopyText =
-    plan &&
-    `
-[입력]
-- 언어/스택: ${language}
-- 난이도: ${level}
-- 프레임워크/라이브러리: ${frameworks.length ? frameworks.join(", ") : "(선택 없음)"}
-
-[제목]
-${plan.projectTitle}
-
-[한 줄 소개]
-${plan.oneLiner}
-
-[MVP 기능]
-${plan.mvpFeatures.join("\n")}
-
-[구현 단계]
-${plan.buildSteps.join("\n")}
-
-[README]
-${plan.readmeDraft}
-
-[면접 포인트]
-${plan.interviewPoints.join("\n")}
-`.trim();
-
+export default function LandingPage() {
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
-      <AuthHeader />
-      {/* <CreditCTA /> */}
-      {error && <ErrorBanner title="오류" message={error.message} disabled={loading} />}
-      
-      <ProjectForm
-        language={language}
-        level={level}
-        frameworks={frameworks}
-        loading={loading}
-        authenticated={authenticated} // ✅ 여기 통일
-        onChangeLanguage={handleLanguageChange}
-        onChangeLevel={setLevel}
-        onToggleFramework={toggleFramework}
-        onSubmit={handleSubmit}
-      />
+    <main className="mx-auto max-w-5xl px-4 py-14">
+      <header className="flex items-center justify-between">
+        <Link href="/" className="text-lg font-semibold tracking-tight">
+          DevPath
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/login" className="dp-btn">로그인</Link>
+          <Link href="/app" className="dp-btn-primary">시작하기</Link>
+        </div>
+      </header>
 
-      {plan && (
-        <>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-            <ExportDropdown
-              title={plan.projectTitle}
-              fullText={fullCopyText ?? ""}
-              readmeText={plan.readmeDraft}
-              onCopyAll={async () => {
-                if (!fullCopyText) return;
-                await copyToClipboard(fullCopyText);
-                alert("복사 완료!");
-              }}
-              onCopyReadme={async () => {
-                await copyToClipboard(plan.readmeDraft);
-                alert("복사 완료!");
-              }}
-            />
+      <section className="mt-12 grid gap-6 md:grid-cols-2 md:items-center">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight">
+            프로젝트 설계, 문서처럼 “바로 쓸 수 있게”
+          </h1>
+          <p className="text-sm dp-muted">
+            DevPath는 프로젝트 구조, MVP, 구현 단계, README까지 한 번에 생성해줍니다.
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <Link href="/app" className="dp-btn-primary">무료로 시작하기</Link>
+            <Link href="/billing" className="dp-btn">크레딧 구매</Link>
           </div>
 
-          <PlanResult
-            plan={plan}
-            input={{ language, level, frameworks }}
-            onCopyAll={async () => {
-              if (!fullCopyText) return;
-              try {
-                await copyToClipboard(fullCopyText);
-                alert("복사 완료!");
-              } catch {
-                alert("복사 실패");
-              }
-            }}
-            onCopyReadme={async () => {
-              try {
-                await copyToClipboard(plan.readmeDraft);
-                alert("복사 완료!");
-              } catch {
-                alert("복사 실패");
-              }
-            }}
-          />
-        </>
-      )}
+          <p className="text-xs dp-muted">
+            로그인 후 사용 가능합니다.
+          </p>
+        </div>
 
-      <HistoryPanel
-        items={historyItems}          // ✅ 변수명 수정
-        onRestore={restoreHistory}
-        onDelete={(id) => {
-          removeHistory(id);
-          }
-        }
-        onClear={clearHistory}        // ✅ 변수명 수정
-      />
+        <div className="dp-card">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="dp-card-title">예시 결과</h3>
+            <span className="text-xs dp-muted">문서형 카드</span>
+          </div>
+
+          <div className="space-y-3 text-sm">
+            <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
+              <div className="font-semibold">프로젝트 개요</div>
+              <div className="mt-1 dp-muted">
+                간단한 한 줄 설명 + 핵심 목표
+              </div>
+            </div>
+            <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
+              <div className="font-semibold">구현 단계</div>
+              <div className="mt-1 dp-muted">
+                1) 세팅 → 2) 핵심 기능 → 3) 배포
+              </div>
+            </div>
+            <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
+              <div className="font-semibold">README</div>
+              <div className="mt-1 dp-muted">
+                그대로 복사/다운로드 가능한 템플릿
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="dp-card">
+          <div className="dp-card-title">구조화된 결과</div>
+          <p className="mt-2 text-sm dp-muted">텍스트 덩어리 대신 카드/섹션으로 제공합니다.</p>
+        </div>
+        <div className="dp-card">
+          <div className="dp-card-title">다음 행동 유도</div>
+          <p className="mt-2 text-sm dp-muted">README 복사/Export/깃헙 적용까지 흐름이 이어집니다.</p>
+        </div>
+        <div className="dp-card">
+          <div className="dp-card-title">크레딧 기반</div>
+          <p className="mt-2 text-sm dp-muted">남은 크레딧을 확인하고 필요한 만큼 충전합니다.</p>
+        </div>
+      </section>
+
+      <footer className="mt-12 text-center text-xs dp-muted">
+        © {new Date().getFullYear()} DevPath
+      </footer>
     </main>
   );
 }

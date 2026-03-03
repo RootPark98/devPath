@@ -3,6 +3,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
+import remarkBreaks from "remark-breaks";
 
 export default function PlanResult(props: {
   plan: GeneratedPlan;
@@ -96,10 +97,12 @@ export default function PlanResult(props: {
                   복사
                 </button>
               </div>
-
+              
               {/* Markdown */}
               <div className="prose prose-sm max-w-none px-4 py-4 dark:prose-invert">
-                <ReactMarkdown>{plan.readmeDraft}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+                    {plan.readmeDraft}
+                </ReactMarkdown>
               </div>
             </div>
           </Card>

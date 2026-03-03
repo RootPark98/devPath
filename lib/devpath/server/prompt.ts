@@ -21,7 +21,7 @@ export function buildPrompt(body: RequestBody): string {
 출력 언어 규칙:
 - 모든 문자열 값(projectTitle, oneLiner, mvpFeatures, buildSteps, readmeDraft, interviewPoints)은 반드시 한국어로 작성한다.
 - 기술 용어(${body.language}, ${frameworksLine}, REST, API, DB 등)는 관례적으로 영어 표기를 유지해도 된다. 단, 문장은 한국어로 작성한다.
-- README는 Markdown 형식을 사용하여 가독성 있게 작성한다.
+- README는 GitHub에서 그대로 렌더링 가능한 Markdown 형식으로 작성한다.
 
 사용자 입력:
 - 언어/스택: ${body.language}
@@ -48,9 +48,23 @@ export function buildPrompt(body: RequestBody): string {
   - 단순 기능 나열이 아니라, "어떻게 구현하는지"가 드러나게 쓴다.
 - buildSteps는 6~10단계:
   - 초기 세팅 → 핵심 구현 → 예외 처리/검증 → 테스트(간단해도 됨) → 배포/운영 고려 순서로 포함한다.
-- readmeDraft는 Markdown 형식으로 작성한다.
-  - 포함 항목: # 개요 / ## 주요 기능 / ## 기술 스택 / ## 실행 방법 / ## 폴더 구조 / ## 개선 아이디어
 - interviewPoints는 최소 5개:
   - 기술 선택 이유, 트레이드오프, 구조/아키텍처 선택 근거를 묻는 질문 위주로 작성한다.
+
+readmeDraft 작성 규칙(매우 중요):
+- 다음 항목을 이 순서대로 반드시 포함한다:
+  - # 개요
+  - ## 주요 기능
+  - ## 기술 스택
+  - ## 실행 방법
+  - ## 폴더 구조
+  - ## 개선 아이디어
+- ## 폴더 구조 섹션에서는 반드시 트리 구조를 코드블록으로 감싼다.
+- 폴더 구조는 반드시 \`\`\`bash 또는 \`\`\`text 코드블록을 사용한다.
+- 트리 구조는 최소 8줄 이상 작성한다.
+- 트리 구조에서는 공백/들여쓰기/줄바꿈을 유지하고, ├── └── │ 문자를 사용한다.
+- 폴더 구조를 평문으로 작성하지 말고, 반드시 코드블록 안에만 작성한다.
+- ## 폴더 구조가 코드블록이 아니면 잘못된 출력으로 간주한다.
 `.trim();
 }
+

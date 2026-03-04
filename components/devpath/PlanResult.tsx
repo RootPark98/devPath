@@ -5,6 +5,19 @@ import ReactMarkdown from "react-markdown";
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
 import remarkBreaks from "remark-breaks";
 
+function fixFolderTree(md: string) {
+  // "## 폴더 구조" 아래 내용을 다음 섹션(## ) 전까지 잡아서 코드블록으로 감쌈
+  return md.replace(
+    /##\s*폴더 구조\s*\n([\s\S]*?)(\n##\s|$)/,
+    (match, body, tail) => {
+      const trimmed = String(body).trim();
+      // 이미 코드블록이면 그대로
+      if (trimmed.startsWith("```")) return match;
+      return `## 폴더 구조\n\n\`\`\`text\n${trimmed}\n\`\`\`\n${tail === "$" ? "" : tail}`;
+    }
+  );
+}
+
 export default function PlanResult(props: {
   plan: GeneratedPlan;
   input: { language: Language; level: Level; frameworks: string[] };
@@ -101,7 +114,7 @@ export default function PlanResult(props: {
               {/* Markdown */}
               <div className="prose prose-sm max-w-none px-4 py-4 dark:prose-invert">
                 <ReactMarkdown remarkPlugins={[remarkBreaks]}>
-                    {plan.readmeDraft}
+                    {fixFolderTree(plan.readmeDraft)}
                 </ReactMarkdown>
               </div>
             </div>

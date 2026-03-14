@@ -102,8 +102,8 @@ export default function Home() {
   };
 
   const fullCopyText =
-    plan &&
-    `
+  plan &&
+  `
 [입력]
 - 언어/스택: ${language}
 - 난이도: ${level}
@@ -114,6 +114,31 @@ ${plan.projectTitle}
 
 [한 줄 소개]
 ${plan.oneLiner}
+
+[기술적 난제]
+${plan.technicalChallenge}
+
+[추천 기술 스택]
+Frontend: ${plan.recommendedStack.frontend.join(", ")}
+Backend: ${plan.recommendedStack.backend.join(", ")}
+Database: ${plan.recommendedStack.database}
+Libraries: ${plan.recommendedStack.libraries.join(", ")}
+
+[데이터베이스 설계]
+${plan.databaseSchema
+  .map(
+    (t) =>
+      `- ${t.entity} (${t.description})\n  fields: ${t.fields.join(", ")}`
+  )
+  .join("\n")}
+
+[핵심 API 설계]
+${plan.coreApiSpecs
+  .map(
+    (api) =>
+      `- ${api.method} ${api.path}\n  ${api.description}`
+  )
+  .join("\n")}
 
 [MVP 기능]
 ${plan.mvpFeatures.join("\n")}

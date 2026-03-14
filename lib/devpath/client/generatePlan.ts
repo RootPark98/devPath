@@ -1,5 +1,11 @@
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
 import { readApiResponse } from "@/lib/devpath/client/errors";
+import {
+  isLanguage,
+  isLevel,
+  sanitizeFrameworks,
+  type RequestBody,
+} from "@/lib/devpath/server/input";
 
 /**
  * 클라이언트에서 /api/generate 호출 캡슐화
@@ -14,7 +20,8 @@ export type GeneratePlanInput = {
 };
 
 export type GeneratePlanResponse = {
-  plan: GeneratedPlan;
+  input: RequestBody;
+  output: GeneratedPlan;
   historyId: string;
 };
 

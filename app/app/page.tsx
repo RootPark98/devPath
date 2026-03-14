@@ -34,6 +34,11 @@ export default function Home() {
   // UX 상태
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
+  const [planInput, setPlanInput] = useState<{
+      language: Language;
+      level: Level;
+      frameworks: string[];
+    } | null>(null);
   const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(null);
 
   // ✅ 인증 상태
@@ -73,8 +78,10 @@ export default function Home() {
     setPlan(null);
 
     try {
-      const { plan: nextPlan } = await generatePlan({ language, level, frameworks }); // ✅ 응답 형태 변경 가정
-      setPlan(nextPlan);
+      const { input, output } = await generatePlan({ language, level, frameworks });
+
+      setPlan(output);
+      setPlanInput(input);
 
       // ✅ 서버가 저장했으니 목록만 동기화
       await refreshHistory();
@@ -171,7 +178,7 @@ ${plan.interviewPoints.join("\n")}
         onSubmit={handleSubmit}
       />
 
-      {plan && (
+      {plan && planInput && (
         <>
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
             <ExportDropdown
@@ -192,7 +199,7 @@ ${plan.interviewPoints.join("\n")}
 
           <PlanResult
             plan={plan}
-            input={{ language, level, frameworks }}
+            input={planInput}
             onCopyAll={async () => {
               if (!fullCopyText) return;
               try {

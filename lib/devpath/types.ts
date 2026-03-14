@@ -53,3 +53,9 @@ export type PlanHistoryItem = {
   };
   output: GeneratedPlan;
 };
+
+export type PlanInput = {
+  language: Language;
+  level: Level;
+  frameworks: string[];
+};

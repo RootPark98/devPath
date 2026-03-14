@@ -18,7 +18,8 @@ import { safeParseGeminiJson } from "@/lib/devpath/server/parse";
 import { coercePlan, validatePlan } from "@/lib/devpath/server/validate";
 
 export type GeneratePlanResponse = {
-  plan: GeneratedPlan;
+  input: RequestBody;
+  output: GeneratedPlan;
   historyId: string;
 };
 
@@ -229,7 +230,11 @@ export async function POST(request: Request) {
     }
 
     // ✅ 응답
-    const payload: GeneratePlanResponse = { plan: coerced, historyId: saved.id };
+    const payload: GeneratePlanResponse = {
+      input: body,
+      output: coerced,
+      historyId: saved.id,
+    };
     return apiOk(payload, 201);
   } catch (e: any) {
     // 혹시 여기까지 왔는데 예약만 되고 뭔가 터졌으면 환불(최후의 안전장치)

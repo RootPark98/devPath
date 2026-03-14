@@ -2,7 +2,7 @@
 
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
+import type { GeneratedPlan, PlanInput } from "@/lib/devpath/types";
 import remarkBreaks from "remark-breaks";
 
 function fixFolderTree(md: string) {
@@ -18,7 +18,7 @@ function fixFolderTree(md: string) {
 
 export default function PlanResult(props: {
   plan: GeneratedPlan;
-  input: { language: Language; level: Level; frameworks: string[] };
+  input: PlanInput;
   onCopyAll: () => void;
   onCopyReadme: () => void;
 }) {

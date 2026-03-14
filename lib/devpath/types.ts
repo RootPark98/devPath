@@ -3,13 +3,35 @@
 // 👉 타입을 한 군데에 모으면 나중에 구조가 바뀌어도 수정이 쉬워진다.
 
 export type GeneratedPlan = {
-  projectTitle: string;
-  oneLiner: string;
-  mvpFeatures: string[];
-  buildSteps: string[];
-  readmeDraft: string;
-  interviewPoints: string[];
-};
+  projectTitle: string
+  oneLiner: string
+
+  technicalChallenge: string
+
+  recommendedStack: {
+    frontend: string[]
+    backend: string[]
+    database: string
+    libraries: string[]
+  }
+
+  databaseSchema: {
+    entity: string
+    fields: string[]
+    description: string
+  }[]
+
+  coreApiSpecs: {
+    method: string
+    path: string
+    description: string
+  }[]
+
+  mvpFeatures: string[]
+  buildSteps: string[]
+  readmeDraft: string
+  interviewPoints: string[]
+}
 
 // 고정 언어 옵션 (readonly tuple)
 // as const를 사용하면 각 요소가 string이 아니라 리터럴 타입이 된다.

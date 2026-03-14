@@ -6,12 +6,10 @@ import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
 import remarkBreaks from "remark-breaks";
 
 function fixFolderTree(md: string) {
-  // "## 폴더 구조" 아래 내용을 다음 섹션(## ) 전까지 잡아서 코드블록으로 감쌈
   return md.replace(
     /##\s*폴더 구조\s*\n([\s\S]*?)(\n##\s|$)/,
     (match, body, tail) => {
       const trimmed = String(body).trim();
-      // 이미 코드블록이면 그대로
       if (trimmed.startsWith("```")) return match;
       return `## 폴더 구조\n\n\`\`\`text\n${trimmed}\n\`\`\`\n${tail === "$" ? "" : tail}`;
     }
@@ -36,7 +34,6 @@ export default function PlanResult(props: {
             <p className="mt-1 text-sm dp-muted">{plan.oneLiner}</p>
           </div>
 
-          {/* Actions */}
           <div className="flex shrink-0 flex-wrap gap-2">
             <button onClick={onCopyAll} className="dp-btn-primary">
               전체 복사
@@ -47,7 +44,6 @@ export default function PlanResult(props: {
           </div>
         </div>
 
-        {/* Meta chips */}
         <div className="flex flex-wrap gap-2 pt-1">
           <Chip label={`Language: ${input.language}`} />
           <Chip label={`Level: ${input.level}`} />
@@ -59,6 +55,70 @@ export default function PlanResult(props: {
 
       {/* Content */}
       <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {/* Technical Challenge */}
+        <Card title="기술적 난제">
+          <p className="text-sm leading-relaxed">{plan.technicalChallenge}</p>
+        </Card>
+
+        {/* Recommended Stack */}
+        <Card title="추천 기술 스택">
+          <div className="space-y-4 text-sm">
+            <StackGroup label="Frontend" items={plan.recommendedStack.frontend} />
+            <StackGroup label="Backend" items={plan.recommendedStack.backend} />
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide dp-muted">
+                Database
+              </p>
+              <span className="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+                {plan.recommendedStack.database}
+              </span>
+            </div>
+            <StackGroup label="Libraries" items={plan.recommendedStack.libraries} />
+          </div>
+        </Card>
+
+        {/* Database Schema */}
+        <Card title="데이터베이스 설계">
+          <div className="space-y-3">
+            {plan.databaseSchema.map((item, i) => (
+              <div
+                key={`${item.entity}-${i}`}
+                className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-sm font-semibold">{item.entity}</h4>
+                </div>
+                <p className="mt-1 text-xs dp-muted">{item.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {item.fields.map((field, idx) => (
+                    <Chip key={`${field}-${idx}`} label={field} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Core API Specs */}
+        <Card title="핵심 API 설계">
+          <div className="space-y-3">
+            {plan.coreApiSpecs.map((api, i) => (
+              <div
+                key={`${api.method}-${api.path}-${i}`}
+                className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-md bg-neutral-100 px-2 py-1 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+                    {api.method}
+                  </span>
+                  <code className="text-sm font-medium">{api.path}</code>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed">{api.description}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         {/* MVP */}
         <Card title="MVP 기능">
           <ul className="space-y-2 text-sm">
@@ -83,7 +143,7 @@ export default function PlanResult(props: {
           </ul>
         </Card>
 
-        {/* Steps (span 2) */}
+        {/* Steps */}
         <div className="md:col-span-2">
           <Card title="구현 단계">
             <ol className="space-y-3 text-sm">
@@ -99,7 +159,7 @@ export default function PlanResult(props: {
           </Card>
         </div>
 
-        {/* README (span 2) */}
+        {/* README */}
         <div className="md:col-span-2">
           <Card title="README 미리보기" rightSlot={<CopyHint />}>
             <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
@@ -110,11 +170,10 @@ export default function PlanResult(props: {
                   복사
                 </button>
               </div>
-              
-              {/* Markdown */}
+
               <div className="prose prose-sm max-w-none px-4 py-4 dark:prose-invert">
                 <ReactMarkdown remarkPlugins={[remarkBreaks]}>
-                    {fixFolderTree(plan.readmeDraft)}
+                  {fixFolderTree(plan.readmeDraft)}
                 </ReactMarkdown>
               </div>
             </div>
@@ -125,7 +184,6 @@ export default function PlanResult(props: {
   );
 }
 
-/* ✅ 공통 Card: dp-card 사용 */
 function Card({
   title,
   children,
@@ -156,4 +214,25 @@ function Chip({ label }: { label: string }) {
 
 function CopyHint() {
   return <span className="text-xs dp-muted">미리보기는 렌더링된 결과예요</span>;
+}
+
+function StackGroup({
+  label,
+  items,
+}: {
+  label: string;
+  items: string[];
+}) {
+  return (
+    <div>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide dp-muted">
+        {label}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((item, i) => (
+          <Chip key={`${label}-${item}-${i}`} label={item} />
+        ))}
+      </div>
+    </div>
+  );
 }

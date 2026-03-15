@@ -76,6 +76,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setPlan(null);
+    setPlanInput(null);
 
     try {
       const { input, output } = await generatePlan({ language, level, frameworks });
@@ -101,10 +102,11 @@ export default function Home() {
 
   // 히스토리 복원
   const restoreHistory = (item: PlanHistoryItem) => {
-    setLanguage(item.input.language);
-    setLevel(item.input.level);
-    setFrameworks(item.input.frameworks);
+    // setLanguage(item.input.language);
+    // setLevel(item.input.level);
+    // setFrameworks(item.input.frameworks);
     setPlan(item.output);
+    setPlanInput(item.input)
     setError(null);
   };
 

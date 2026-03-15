@@ -146,8 +146,8 @@ export async function POST(request: Request) {
       resp = await callGeminiGenerateContent({
         apiKey,
         prompt,
-        temperature: 0.4,
-        timeoutMs: 15000,
+        temperature: 0.8,
+        timeoutMs: 20000,
         maxRetries429: 2,
       });
     } catch (e: any) {

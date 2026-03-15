@@ -14,12 +14,14 @@ export function buildPrompt(body: RequestBody): string {
 단순한 토이 프로젝트가 아니라, 실제 실무에서 겪는 고민(데이터 흐름, 상태 관리, 예외 처리, 성능/확장성, 유지보수)을 드러낼 수 있는 프로젝트를 설계한다.
 
 출력 규칙(매우 중요):
-- 반드시 JSON 객체 1개만 출력하라.
+- 당신의 응답은 오직 JSON.parse()가 가능한 순수 JSON 문자열이어야 합니다. 
+- 어떤 서론이나 결론, 인사말, 추가 텍스트를 절대 포함하지 마십시오.
 - 마크다운 코드 펜스(\`\`\`json 등), 설명 문장, 추가 텍스트를 절대 금지한다. (JSON.parse가 즉시 가능해야 함)
+- JSON 전체 출력에서는 절대로 코드블록(\`\`\`)을 사용하지 않는다. 단, readmeDraft 내부에서는 폴더 구조 표현을 위해 코드블록을 사용할 수 있다.
 - 배열로 감싸지 말 것.
 
 출력 언어 규칙:
-- 모든 문자열 값(projectTitle, oneLiner, mvpFeatures, buildSteps, readmeDraft, interviewPoints)은 반드시 한국어로 작성한다.
+- 모든 문자열 값(projectTitle, oneLiner, technicalChallenge, mvpFeatures, buildSteps, readmeDraft, interviewPoints)은 반드시 한국어로 작성한다.
 - 기술 용어(${body.language}, ${frameworksLine}, REST, API, DB 등)는 관례적으로 영어 표기를 유지해도 된다. 단, 문장은 한국어로 작성한다.
 - README는 GitHub에서 그대로 렌더링 가능한 Markdown 형식으로 작성한다.
 
@@ -29,38 +31,57 @@ export function buildPrompt(body: RequestBody): string {
 - 프레임워크/라이브러리(선택): ${frameworksLine}
 
 아래 스키마에 맞는 결과를 생성하라:
+
 {
   "projectTitle": "string",
   "oneLiner": "string",
+  "technicalChallenge": "string",
+  "recommendedStack": {
+    "frontend": ["string"],
+    "backend": ["string"],
+    "database": "string",
+    "libraries": ["string"]
+  },
+  "databaseSchema": [
+    {
+      "entity": "string",
+      "fields": ["string"],
+      "description": "string"
+    }
+  ],
+  "coreApiSpecs": [
+    {
+      "method": "string",
+      "path": "string",
+      "description": "string"
+    }
+  ],
   "mvpFeatures": ["string"],
   "buildSteps": ["string"],
   "readmeDraft": "string",
   "interviewPoints": ["string"]
 }
 
+중요:
+- technicalChallenge, recommendedStack, databaseSchema, coreApiSpecs는 반드시 생성해야 한다.
+- recommendedStack의 frontend, backend, database, libraries는 모두 비워둘 수 없다.
+- databaseSchema는 최소 3개의 엔티티를 작성해야 한다.
+- coreApiSpecs는 최소 3개의 API를 작성해야 한다.
+- databaseSchema와 coreApiSpecs는 실제 개발자가 바로 구현할 수 있을 정도로 구체적으로 작성한다.
+
 프로젝트 생성 방식(중요):
 - 먼저 "현실적인 문제 상황"을 하나 설정한다.
 - 그 문제를 해결하기 위한 서비스 형태의 프로젝트를 설계한다.
-- 단순 기능 구현이 아니라 **문제 해결 중심 서비스**여야 한다.
+- 단순 기능 구현이 아니라 문제 해결 중심 서비스여야 한다.
 
 프로젝트 도메인 선택 규칙:
 아래 서비스 도메인 중 하나를 선택하여 프로젝트를 설계한다.
 
-가능한 도메인:
-- 협업 도구
-- 데이터 분석 플랫폼
-- 커머스/결제
-- AI 기반 서비스
-- 교육 플랫폼
-- 헬스케어
-- 위치 기반 서비스
-- 콘텐츠 플랫폼
-- 커뮤니티/소셜 서비스
-- 개발자 도구 (DevTool)
-- 생산성 자동화 서비스
-- 금융/가계부 서비스
-- 로그 분석 / 모니터링 도구
-- API 관리 플랫폼
+[중요: 프로젝트 생성 알고리즘]
+1. 아래 14가지 도메인 중 하나를 '랜덤'하게 선택한다: 
+   (협업 도구, 데이터 분석, 커머스, AI 서비스, 교육, 헬스케어, 위치 기반, 콘텐츠 플랫폼, 소셜 서비스, 개발자 도구, 생산성 자동화, 금융/가계부, 로그 모니터링, API 플랫폼)
+2. 선택한 도메인 내에서 '기존에 흔하지 않은' 독특한 서비스 시나리오를 구상한다.
+3. 반드시 ${body.language}와 ${body.level}에 최적화된 기술적 난제를 설정한다.
 
 금지 규칙:
 - Todo 리스트
@@ -78,6 +99,28 @@ projectTitle 규칙:
 - 서비스처럼 보이는 이름을 만든다.
 - 예: "DevInsight", "TeamFlow", "LogScope" 같은 형태
 - 단순 기능 이름(예: 게시판, Todo 관리)은 사용하지 않는다.
+
+technicalChallenge 작성 규칙:
+- 이 프로젝트에서 해결해야 할 핵심 기술적 난제를 작성한다.
+- 단순 구현이 아니라 기술적 깊이를 보여줄 문제를 설명한다.
+- 예: 동시성 제어, 캐싱 전략, 데이터 정규화, 실시간 동기화, 대량 데이터 처리, 권한 관리
+
+recommendedStack 작성 규칙:
+- 프로젝트에 적합한 기술 스택을 추천한다.
+- frontend와 backend는 실제 구현 가능한 스택을 작성한다.
+- database는 하나의 DB를 명시한다.
+- libraries는 프로젝트 구현에 도움이 되는 라이브러리를 3~4개 추천한다.
+
+databaseSchema 작성 규칙:
+- 핵심 엔티티 3~5개를 작성한다.
+- 각 엔티티는 entity, fields, description을 포함해야 한다.
+- fields는 실제 DB 설계에 사용할 수 있는 핵심 필드명을 작성한다.
+- 각 엔티티는 최소 하나의 관계 필드(FK)를 포함한다. 예: userId, projectId 등
+
+coreApiSpecs 작성 규칙:
+- 핵심 API 3~5개를 작성한다.
+- 각 API는 method, path, description을 포함해야 한다.
+- RESTful 설계를 기본으로 한다.
 
 난이도 반영 상세:
 - 초급:
@@ -106,12 +149,10 @@ projectTitle 규칙:
 
 mvpFeatures 작성 규칙:
 - 5~7개 작성
-- 단순 기능이 아니라
-  "어떤 기술로 어떤 문제를 해결하는지"가 드러나게 작성
+- 단순 기능이 아니라 어떤 기술로 어떤 문제를 해결하는지 드러나게 작성
 
 buildSteps 작성 규칙:
 - 6~10단계 작성
-- 다음 흐름을 따르도록 한다
 
 1. 개발 환경 및 프로젝트 구조 설정
 2. 핵심 도메인 모델 설계
@@ -126,20 +167,13 @@ interviewPoints 작성 규칙:
 - 최소 5개 작성
 - 기술 면접관 관점에서 질문 생성
 
-예시 질문 유형:
-- 왜 이 기술을 선택했는가?
-- 다른 기술과의 Trade-off는 무엇인가?
-- 프로젝트 확장 시 어떤 구조로 리팩토링할 것인가?
-- 성능 병목은 어디에서 발생할 수 있는가?
-- 장애 상황을 어떻게 대응할 것인가?
-
 또한 아래 내용을 최소 1개 이상 반드시 포함한다:
 - 실무 환경을 가정한 기술적 제약 사항
 - 실제 운영 중 발생할 수 있는 트러블슈팅 사례
 
 readmeDraft 작성 규칙(매우 중요):
 
-다음 항목을 이 순서대로 반드시 포함한다:
+다음 항목을 반드시 포함한다:
 
 # 개요
 ## 주요 기능

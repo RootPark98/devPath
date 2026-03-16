@@ -114,9 +114,13 @@ export default function Home() {
   plan &&
   `
 [입력]
-- 언어/스택: ${language}
-- 난이도: ${level}
-- 프레임워크/라이브러리: ${frameworks.length ? frameworks.join(", ") : "(선택 없음)"}
+- 언어/스택: ${planInput?.language ?? language}
+- 난이도: ${planInput?.level ?? level}
+- 프레임워크/라이브러리: ${
+      (planInput?.frameworks?.length ?? frameworks.length)
+        ? (planInput?.frameworks ?? frameworks).join(", ")
+        : "(선택 없음)"
+    }
 
 [제목]
 ${plan.projectTitle}
@@ -126,6 +130,9 @@ ${plan.oneLiner}
 
 [기술적 난제]
 ${plan.technicalChallenge}
+
+[사용자 흐름]
+${plan.userFlow.map((step, index) => `${index + 1}. ${step}`).join("\n")}
 
 [추천 기술 스택]
 Frontend: ${plan.recommendedStack.frontend.join(", ")}
@@ -150,7 +157,7 @@ ${plan.coreApiSpecs
   .join("\n")}
 
 [MVP 기능]
-${plan.mvpFeatures.join("\n")}
+${plan.mvpFeatures.map((feature) => `- ${feature}`).join("\n")}
 
 [구현 단계]
 ${plan.buildSteps.join("\n")}

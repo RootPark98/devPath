@@ -36,6 +36,7 @@ export function buildPrompt(body: RequestBody): string {
   "projectTitle": "string",
   "oneLiner": "string",
   "technicalChallenge": "string",
+  "userFlow": ["string"],
   "recommendedStack": {
     "frontend": ["string"],
     "backend": ["string"],
@@ -68,6 +69,39 @@ export function buildPrompt(body: RequestBody): string {
 - databaseSchema는 최소 3개의 엔티티를 작성해야 한다.
 - coreApiSpecs는 최소 3개의 API를 작성해야 한다.
 - databaseSchema와 coreApiSpecs는 실제 개발자가 바로 구현할 수 있을 정도로 구체적으로 작성한다.
+
+userFlow 작성 규칙 (매우 중요):
+- 4~6개의 단계로 작성한다.
+- "사용자 행동 흐름"을 기준으로 작성한다.
+- 기능 목록이 아니라 실제 서비스 사용 시나리오여야 한다.
+- 각 단계는 짧고 명확한 한 문장으로 작성한다.
+- 단계는 실제 사용 순서대로 작성한다.
+
+좋은 예:
+"userFlow": [
+"사용자가 회원가입 후 로그인한다",
+"사용자가 새 프로젝트를 생성한다",
+"사용자가 데이터를 입력하거나 업로드한다",
+"사용자가 분석 실행을 요청한다",
+"시스템이 분석 결과를 대시보드로 제공한다"
+]
+
+잘못된 예:
+"userFlow": [
+"JWT 인증 구현",
+"REST API 개발",
+"DB 모델링",
+"React 상태 관리 구현"
+]
+
+위와 같은 개발 작업 / 기술 구현 설명은 절대 userFlow에 작성하지 않는다.
+
+설계 일관성 규칙:
+- userFlow는 프로젝트의 핵심 사용자 여정이다.
+- databaseSchema는 userFlow에서 발생하는 데이터를 저장할 수 있도록 설계해야 한다.
+- coreApiSpecs는 userFlow 단계에서 실제로 필요한 API를 중심으로 작성해야 한다.
+- mvpFeatures는 userFlow를 실제 기능으로 구현할 수 있도록 구성해야 한다.
+- userFlow에 없는 행동을 갑자기 API나 기능 목록에 추가하지 않는다.
 
 프로젝트 생성 방식(중요):
 - 먼저 "현실적인 문제 상황"을 하나 설정한다.

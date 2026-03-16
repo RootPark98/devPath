@@ -22,27 +22,44 @@ function isStringArray(v: unknown): v is string[] {
   return Array.isArray(v) && v.every((x) => typeof x === "string");
 }
 
+function isUserFlow(v: unknown): v is string[] {
+  return (
+    Array.isArray(v) &&
+    v.length >= 4 &&
+    v.length <= 6 &&
+    v.every((x) => typeof x === "string" && x.trim().length > 0)
+  );
+}
+
 function isRecommendedStack(v: unknown): v is GeneratedPlan["recommendedStack"] {
   return (
     !!v &&
     typeof v === "object" &&
     isStringArray((v as any).frontend) &&
+    (v as any).frontend.length > 0 &&
     isStringArray((v as any).backend) &&
+    (v as any).backend.length > 0 &&
     typeof (v as any).database === "string" &&
-    isStringArray((v as any).libraries)
+    (v as any).database.trim().length > 0 &&
+    isStringArray((v as any).libraries) &&
+    (v as any).libraries.length > 0
   );
 }
 
 function isDatabaseSchema(v: unknown): v is GeneratedPlan["databaseSchema"] {
   return (
     Array.isArray(v) &&
+    v.length >= 3 &&
     v.every(
       (item) =>
         item &&
         typeof item === "object" &&
         typeof item.entity === "string" &&
+        item.entity.trim().length > 0 &&
         isStringArray(item.fields) &&
-        typeof item.description === "string"
+        item.fields.length > 0 &&
+        typeof item.description === "string" &&
+        item.description.trim().length > 0
     )
   );
 }
@@ -50,13 +67,17 @@ function isDatabaseSchema(v: unknown): v is GeneratedPlan["databaseSchema"] {
 function isCoreApiSpecs(v: unknown): v is GeneratedPlan["coreApiSpecs"] {
   return (
     Array.isArray(v) &&
+    v.length >= 3 &&
     v.every(
       (item) =>
         item &&
         typeof item === "object" &&
         typeof item.method === "string" &&
+        item.method.trim().length > 0 &&
         typeof item.path === "string" &&
-        typeof item.description === "string"
+        item.path.trim().length > 0 &&
+        typeof item.description === "string" &&
+        item.description.trim().length > 0
     )
   );
 }
@@ -71,6 +92,7 @@ export function validatePlan(plan: any): plan is GeneratedPlan {
     plan.oneLiner.trim().length > 0 &&
     typeof plan.technicalChallenge === "string" &&
     plan.technicalChallenge.trim().length > 0 &&
+    isUserFlow(plan.userFlow) &&
     isRecommendedStack(plan.recommendedStack) &&
     isDatabaseSchema(plan.databaseSchema) &&
     isCoreApiSpecs(plan.coreApiSpecs) &&
@@ -96,6 +118,25 @@ function asStringArray(v: any, fallback: string[] = []) {
   return arr.length ? arr : fallback;
 }
 
+function asUserFlow(v: any): string[] {
+  const fallback = [
+    "사용자가 회원가입 후 로그인한다",
+    "사용자가 핵심 데이터를 입력하거나 등록한다",
+    "사용자가 주요 작업을 실행한다",
+    "시스템이 처리 결과를 사용자에게 보여준다",
+  ];
+
+  if (!Array.isArray(v)) return fallback;
+
+  const arr = v
+    .filter((x) => typeof x === "string")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .slice(0, 6);
+
+  return arr.length >= 4 ? arr : fallback;
+}
+
 function asRecommendedStack(v: any): GeneratedPlan["recommendedStack"] {
   return {
     frontend: asStringArray(v?.frontend, ["기본 프론트엔드 스택"]),
@@ -106,20 +147,25 @@ function asRecommendedStack(v: any): GeneratedPlan["recommendedStack"] {
 }
 
 function asDatabaseSchema(v: any): GeneratedPlan["databaseSchema"] {
-  if (!Array.isArray(v)) {
-    return [
-      {
-        entity: "User",
-        fields: ["id", "email", "createdAt"],
-        description: "기본 사용자 정보",
-      },
-      {
-        entity: "Project",
-        fields: ["id", "title", "status", "createdAt"],
-        description: "핵심 비즈니스 데이터",
-      },
-    ];
-  }
+  const fallback: GeneratedPlan["databaseSchema"] = [
+    {
+      entity: "User",
+      fields: ["id", "email", "createdAt"],
+      description: "기본 사용자 정보",
+    },
+    {
+      entity: "Project",
+      fields: ["id", "userId", "title", "status", "createdAt"],
+      description: "사용자가 생성한 핵심 비즈니스 데이터",
+    },
+    {
+      entity: "Activity",
+      fields: ["id", "projectId", "type", "createdAt"],
+      description: "프로젝트 내 주요 이벤트 및 작업 기록",
+    },
+  ];
+
+  if (!Array.isArray(v)) return fallback;
 
   const arr = v
     .filter((item) => item && typeof item === "object")
@@ -130,32 +176,29 @@ function asDatabaseSchema(v: any): GeneratedPlan["databaseSchema"] {
     }))
     .filter((item) => item.entity.length > 0);
 
-  return arr.length
-    ? arr
-    : [
-        {
-          entity: "User",
-          fields: ["id", "email", "createdAt"],
-          description: "기본 사용자 정보",
-        },
-      ];
+  return arr.length >= 3 ? arr : fallback;
 }
 
 function asCoreApiSpecs(v: any): GeneratedPlan["coreApiSpecs"] {
-  if (!Array.isArray(v)) {
-    return [
-      {
-        method: "GET",
-        path: "/api/items",
-        description: "핵심 데이터 목록 조회",
-      },
-      {
-        method: "POST",
-        path: "/api/items",
-        description: "핵심 데이터 생성",
-      },
-    ];
-  }
+  const fallback: GeneratedPlan["coreApiSpecs"] = [
+    {
+      method: "GET",
+      path: "/api/items",
+      description: "핵심 데이터 목록 조회",
+    },
+    {
+      method: "POST",
+      path: "/api/items",
+      description: "핵심 데이터 생성",
+    },
+    {
+      method: "GET",
+      path: "/api/items/:id",
+      description: "핵심 데이터 상세 조회",
+    },
+  ];
+
+  if (!Array.isArray(v)) return fallback;
 
   const arr = v
     .filter((item) => item && typeof item === "object")
@@ -166,15 +209,7 @@ function asCoreApiSpecs(v: any): GeneratedPlan["coreApiSpecs"] {
     }))
     .filter((item) => item.method.length > 0 && item.path.length > 0);
 
-  return arr.length
-    ? arr
-    : [
-        {
-          method: "GET",
-          path: "/api/items",
-          description: "핵심 데이터 목록 조회",
-        },
-      ];
+  return arr.length >= 3 ? arr : fallback;
 }
 
 export function coercePlan(input: any): GeneratedPlan {
@@ -184,6 +219,9 @@ export function coercePlan(input: any): GeneratedPlan {
 
   const technicalChallenge =
     input?.technicalChallenge ?? input?.challenge ?? input?.technical_problem;
+
+  const userFlow =
+    input?.userFlow ?? input?.user_flow ?? input?.flow ?? input?.userScenario;
 
   const recommendedStack =
     input?.recommendedStack ?? input?.stack ?? input?.techStack ?? input?.recommended_stack;
@@ -210,6 +248,8 @@ export function coercePlan(input: any): GeneratedPlan {
       technicalChallenge,
       "데이터 흐름, 상태 관리, 예외 처리 중 하나 이상의 기술적 난제를 해결하는 것이 핵심입니다."
     ),
+
+    userFlow: asUserFlow(userFlow),
 
     recommendedStack: asRecommendedStack(recommendedStack),
 

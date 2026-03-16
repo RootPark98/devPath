@@ -7,6 +7,7 @@ export type GeneratedPlan = {
   oneLiner: string
 
   technicalChallenge: string
+  userFlow: string[]
 
   recommendedStack: {
     frontend: string[]

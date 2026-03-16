@@ -23,6 +23,7 @@ export default function PlanResult(props: {
   onCopyReadme: () => void;
 }) {
   const { plan, input, onCopyAll, onCopyReadme } = props;
+  const userFlow = Array.isArray(plan.userFlow) ? plan.userFlow : [];
 
   return (
     <section id="plan-result" className="mx-auto mt-6 max-w-5xl px-4 pb-10">
@@ -59,6 +60,22 @@ export default function PlanResult(props: {
         <Card title="기술적 난제">
           <p className="text-sm leading-relaxed">{plan.technicalChallenge}</p>
         </Card>
+
+        {/* User Flow */}
+        {userFlow.length > 0 && (
+          <Card title="사용자 흐름">
+            <ol className="space-y-3 text-sm">
+              {userFlow.map((step, i) => (
+                <li key={`${step}-${i}`} className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-xs font-semibold dark:border-neutral-800">
+                    {i + 1}
+                  </span>
+                  <span className="leading-relaxed">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        )}
 
         {/* Recommended Stack */}
         <Card title="추천 기술 스택">

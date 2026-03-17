@@ -69,7 +69,7 @@ export default function BillingWaitPage() {
             setMessage("충전이 완료됐어요! 메인으로 이동합니다.");
             setIsDone(true);
             await sleep(700);
-            router.replace("/");
+            router.replace("/app");
             return;
           }
 

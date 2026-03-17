@@ -10,8 +10,8 @@ const PACKAGES = [
     name: "Starter",
     badge: "입문",
     desc: "가볍게 체험/1~2개 프로젝트",
-    credits: 100,
-    price: 5900, // TODO: 서버와 반드시 일치시켜야 함
+    credits: 50,
+    price: 2900,
     highlight: false,
   },
   {
@@ -19,18 +19,9 @@ const PACKAGES = [
     name: "Pro",
     badge: "추천",
     desc: "가장 많이 선택하는 패키지",
-    credits: 400,
-    price: 19000, // TODO
+    credits: 100,
+    price: 4900,
     highlight: true,
-  },
-  {
-    type: "max" as const,
-    name: "Max",
-    badge: "가성비",
-    desc: "장기적으로 꾸준히 사용할 때",
-    credits: 1000,
-    price: 39000, // TODO
-    highlight: false,
   },
 ];
 
@@ -87,7 +78,7 @@ export default async function BillingPage() {
       </section>
 
       {/* Pricing */}
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
         {PACKAGES.map((p) => {
           const unit = Math.round(p.price / p.credits);
 
@@ -150,10 +141,6 @@ export default async function BillingPage() {
             </section>
           );
         })}
-      </div>
-
-      <div className="mt-6 text-xs dp-muted">
-        * 가격/크레딧 수량은 서버 결제 준비 API 설정과 일치해야 합니다.
       </div>
     </main>
   );

@@ -5,9 +5,8 @@ import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
 const PACKAGES = {
-  starter: { amount: 5900, credits: 100 },
-  pro: { amount: 19000, credits: 400 },
-  max: { amount: 39000, credits: 1000 },
+  starter: { amount: 2900, credits: 50 },
+  pro: { amount: 4900, credits: 100 },
 } as const;
 
 type PackageType = keyof typeof PACKAGES;

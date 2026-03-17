@@ -117,10 +117,10 @@ export default function Home() {
 - 언어/스택: ${planInput?.language ?? language}
 - 난이도: ${planInput?.level ?? level}
 - 프레임워크/라이브러리: ${
-      (planInput?.frameworks?.length ?? frameworks.length)
-        ? (planInput?.frameworks ?? frameworks).join(", ")
-        : "(선택 없음)"
-    }
+    (planInput?.frameworks?.length ?? frameworks.length)
+      ? (planInput?.frameworks ?? frameworks).join(", ")
+      : "(선택 없음)"
+  }
 
 [제목]
 ${plan.projectTitle}
@@ -132,13 +132,15 @@ ${plan.oneLiner}
 ${plan.technicalChallenge}
 
 [사용자 흐름]
-${plan.userFlow.map((step, index) => `${index + 1}. ${step}`).join("\n")}
+${(plan.userFlow ?? [])
+  .map((step, index) => `${index + 1}. ${step}`)
+  .join("\n")}
 
 [추천 기술 스택]
-Frontend: ${plan.recommendedStack.frontend.join(", ")}
-Backend: ${plan.recommendedStack.backend.join(", ")}
-Database: ${plan.recommendedStack.database}
-Libraries: ${plan.recommendedStack.libraries.join(", ")}
+- Frontend: ${plan.recommendedStack.frontend.join(", ")}
+- Backend: ${plan.recommendedStack.backend.join(", ")}
+- Database: ${plan.recommendedStack.database}
+- Libraries: ${plan.recommendedStack.libraries.join(", ")}
 
 [데이터베이스 설계]
 ${plan.databaseSchema
@@ -160,13 +162,16 @@ ${plan.coreApiSpecs
 ${plan.mvpFeatures.map((feature) => `- ${feature}`).join("\n")}
 
 [구현 단계]
-${plan.buildSteps.join("\n")}
-
-[README]
-${plan.readmeDraft}
+${plan.buildSteps
+  .map((step, index) => `${index + 1}. ${step}`)
+  .join("\n")}
 
 [면접 포인트]
-${plan.interviewPoints.join("\n")}
+${plan.interviewPoints.map((point) => `- ${point}`).join("\n")}
+
+[README]
+
+${plan.readmeDraft}
 `.trim();
 
   return (

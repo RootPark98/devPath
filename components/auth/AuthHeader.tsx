@@ -95,7 +95,7 @@ export default function AuthHeader({ title = "DevPath", className }: Props) {
 
             {/* Logout */}
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: "/app" })}
               className="dp-btn"
             >
               로그아웃

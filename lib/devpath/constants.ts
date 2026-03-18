@@ -7,10 +7,57 @@ import type { Language } from "./types";
 // Record<Language, string[]> 구조를 사용하면
 // Language에 정의된 값만 key로 허용된다.
 export const FRAMEWORKS_BY_LANGUAGE: Record<Language, readonly string[]> = {
-  "React/Next.js": ["Next.js", "React Query", "Zustand", "Tailwind CSS", "shadcn/ui"],
-  Python: ["FastAPI", "Django", "Flask", "SQLAlchemy", "Celery"],
-  Java: ["Spring Boot", "JPA(Hibernate)", "QueryDSL", "JUnit", "Gradle"],
-  "C++": ["STL", "CMake", "Catch2", "fmt", "spdlog"],
-  "C#": [".NET", "ASP.NET Core", "Entity Framework Core", "xUnit", "Serilog"],
-  Go: ["Gin", "Fiber", "GORM", "sqlc", "Zap"],
+  "React/Next.js": [
+    "Next.js",
+    "React Query",
+    "Zustand",
+    "Redux Toolkit",
+    "Tailwind CSS",
+    "shadcn/ui",
+  ],
+
+  Python: [
+    "FastAPI",
+    "Django",
+    "Flask",
+    "SQLAlchemy",
+    "Celery",
+    "Redis",
+  ],
+
+  Java: [
+    "Spring Boot",
+    "Spring Security",
+    "JPA (Hibernate)",
+    "QueryDSL",
+    "MyBatis",
+    "JUnit",
+  ],
+
+  "C++": [
+    "Boost",
+    "CMake",
+    "Catch2",
+    "fmt",
+    "spdlog",
+  ],
+
+  "C#": [
+    ".NET",
+    "ASP.NET Core",
+    "Entity Framework Core",
+    "MediatR",
+    "xUnit",
+    "Serilog",
+  ],
+
+  Go: [
+    "Gin",
+    "Fiber",
+    "Echo",
+    "GORM",
+    "sqlc",
+    "Redis",
+    "Zap",
+  ],
 } as const;

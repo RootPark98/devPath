@@ -144,13 +144,28 @@ recommendedStack:
 - libraries 3~4개
 - N/A 금지
 - CLI 프로젝트의 경우 frontend는 "CLI"로 명시
+database는 반드시 존재해야 한다.
+CLI 도구라도 다음 중 하나를 반드시 선택한다:
+- SQLite (로컬 설정 저장)
+- File-based DB (JSON/CSV)
+- In-memory DB (임시 처리용)
+"DB가 필요 없다"는 판단은 허용하지 않는다.
 
 databaseSchema:
 - 3~5개 엔티티
 - FK 포함
 
 coreApiSpecs:
-- 3~5개 REST API
+- 기본: REST API 설계
+- 단, CLI 또는 로컬 애플리케이션의 경우:
+  - HTTP API 대신 "명령어 인터페이스"로 설계한다
+  - 예: command, args, description 형태
+CLI 예시:
+{
+  "command": "analyze",
+  "args": ["--file", "--filter"],
+  "description": "로그 파일 분석"
+}
 
 mvpFeatures:
 - 5~7개

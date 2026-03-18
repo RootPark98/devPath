@@ -14,354 +14,247 @@ export function buildPrompt(body: RequestBody): string {
 단순한 토이 프로젝트가 아니라, 실제 실무에서 겪는 고민(데이터 흐름, 상태 관리, 예외 처리, 성능/확장성, 유지보수)을 드러낼 수 있는 프로젝트를 설계한다.
 
 사용자 입력:
+- 언어/스택: ${body.language}
+- 난이도: ${body.level}
+- 프레임워크/라이브러리(선택): ${frameworksLine}
 
-* 언어/스택: ${body.language}
-* 난이도: ${body.level}
-* 프레임워크/라이브러리(선택): ${frameworksLine}
+프로젝트 생성 방식(중요):
+- 먼저 "현실적인 문제 상황"을 하나 설정한다.
+- 그 문제를 해결하기 위한 서비스 형태의 프로젝트를 설계한다.
+- 단순 기능 구현이 아니라 문제 해결 중심 서비스여야 한다.
 
----
+[추가 규칙 - 프로젝트 재미/참신성 (매우 중요)]
+- 흔한 주제(로그 분석, 단순 관리 도구, CRUD 관리 시스템)는 피한다.
+- 사용자가 “이거 재밌다” 또는 “이건 포트폴리오로 눈에 띄겠다”라고 느낄 수 있어야 한다.
+- 반드시 아래 중 최소 1개 이상 포함한다:
+  - 사용자 행동 기반 인터랙션 (추천, 피드백, 개인화 등)
+  - 실제 생활 문제를 해결하는 시나리오
+  - 데이터 흐름이 눈에 보이는 구조 (대시보드, 시각화 등)
+  - 약한 수준의 “서비스 느낌” (단순 도구가 아니라 서비스처럼 보일 것)
+- CLI 도구만으로 끝나는 프로젝트는 생성하지 않는다 (반드시 사용자 흐름이 보이는 구조 포함)
 
-프로젝트 생성 방식:
+프로젝트 도메인 선택 규칙:
 
-* 먼저 현실적인 문제 상황을 설정한다.
-* 해당 문제를 해결하는 서비스 형태로 설계한다.
-* 기능 나열이 아닌 문제 해결 중심 프로젝트여야 한다.
+[중요: 프로젝트 생성 알고리즘]
+1. 아래 14가지 도메인 중 하나를 '랜덤'하게 선택한다:
+(협업 도구, 데이터 분석, 커머스, AI 서비스, 교육, 헬스케어, 위치 기반, 콘텐츠 플랫폼, 소셜 서비스, 개발자 도구, 생산성 자동화, 금융/가계부, 로그 모니터링, API 플랫폼)
+2. 선택한 도메인 내에서 '기존에 흔하지 않은' 독특한 서비스 시나리오를 구상한다.
+3. 반드시 ${body.language}와 ${body.level}에 최적화된 기술적 난제를 설정한다.
 
-프로젝트 도메인 선택:
+금지 규칙:
+- Todo 리스트
+- 단순 게시판
+- 메모 앱
+- 기본 CRUD 예제
+- 블로그 클론
 
-1. 아래 14개 도메인 중 하나를 랜덤 선택
-   (협업 도구, 데이터 분석, 커머스, AI 서비스, 교육, 헬스케어, 위치 기반, 콘텐츠 플랫폼, 소셜 서비스, 개발자 도구, 생산성 자동화, 금융/가계부, 로그 모니터링, API 플랫폼)
-2. 흔하지 않은 서비스 시나리오 구성
-3. ${body.language}, ${body.level}에 맞는 기술적 난제 설정
-
-금지:
-
-* Todo / 게시판 / 메모 / 블로그
-* 단순 CRUD 예제
-
----
-
-[프로젝트 유형 결정]
-
-먼저 프로젝트 유형을 하나 선택한다:
-
-1. Web Service
-2. CLI Tool
-3. Data Processing Tool
-4. API Service
-5. AI/ML Application
-
-선택 기준:
-
-* 문제 상황에 가장 적합한 유형을 선택한다.
-* 억지로 웹 서비스로 만들지 않는다.
+위와 같은 단순 프로젝트는 생성하지 않는다.
 
 ---
 
-[유형별 설계 규칙]
+[난이도 강제 규칙 - 매우 중요]
 
-Web Service:
-
-* frontend + backend + database 구조
-* REST API 기반
-* 사용자 UI 흐름 포함
-
-CLI Tool:
-
-* frontend는 "CLI (Command Line Interface)"로 작성
-* HTTP API 금지
-* command 기반 인터페이스 사용
-* 파일 기반 또는 로컬 DB 사용
-
-Data Processing Tool:
-
-* 데이터 입력 → 처리 → 결과 흐름
-* 배치 또는 파이프라인 구조
-* 파일 기반 또는 DB 선택 가능
-
-API Service:
-
-* backend 중심
-* frontend 없이 가능
-* REST 또는 RPC API
-
-AI/ML Application:
-
-* 입력 → 추론 → 결과 흐름
-* AI 기능 포함
-* 외부 API 또는 모델 사용
-
-유형 일관성:
-
-* 선택한 유형과 맞지 않는 구조 혼합 금지
+난이도 조건은 다른 모든 규칙보다 우선한다.
+생성되는 프로젝트는 반드시 선택된 난이도(${body.level})에 맞아야 한다.
 
 ---
-
-[난이도 강제 규칙]
-
-난이도는 모든 규칙보다 우선한다.
 
 [초급]
 
-* 단일 서버 + REST 또는 단순 구조
-* 기본 상태 관리 / 에러 처리 / 데이터 모델링
+목표:
+- 기본적인 웹 서비스 구조 이해
+- 단일 서버 기반의 안정적인 CRUD + 흐름 설계
 
 금지:
+- 실시간 처리 (WebSocket, 스트리밍, 채팅 등)
+- 대용량 트래픽 처리, 분산 시스템
+- 메시지 큐(Celery, Kafka 등)
+- 마이크로서비스 구조
+- 복잡한 외부 연동 (결제, OAuth 복잡 흐름 등)
 
-* 실시간 처리
-* 분산 시스템, 큐, MSA
-* 복잡한 외부 연동
+허용:
+- REST API 기반 단일 서버
+- 단순 비동기 처리 (요청 → 처리 → 응답)
+- 기본적인 상태 관리
+- 간단한 페이징, 필터링
 
-technicalChallenge:
-
-* 데이터 모델링 / API 구조 / 상태 관리 / 에러 처리
+technicalChallenge는 반드시 아래 범위에서 선택:
+- 데이터 모델링 설계
+- API 응답 구조 설계
+- 상태 관리 구조
+- 기본적인 에러 처리
 
 ---
 
 [중급]
 
-* 성능/구조 문제 일부 해결
+목표:
+- 실제 서비스에서 발생하는 성능/구조 문제 일부 해결
 
-필수 (1~2개):
+필수 (최소 1~2개 포함):
+- 상태 관리 라이브러리 (React Query, Zustand 등)
+- 데이터 캐싱 전략
+- 데이터 페이징 / 무한 스크롤
+- API 모킹 또는 테스트
+- 성능 최적화 (렌더링, 쿼리 등)
 
-* 상태 관리 / 캐싱 / 페이징 / 테스트 / 성능 최적화
+허용:
+- 간단한 비동기 작업 처리
+- 외부 API 연동 (단순 수준)
 
 금지:
+- 마이크로서비스
+- 대규모 분산 시스템
 
-* 대규모 분산 시스템
-
-technicalChallenge:
-
-* 캐싱 / 상태 관리 / 성능 / 데이터 흐름
+technicalChallenge는 반드시 다음 중 하나 이상 포함:
+- 캐싱 전략
+- 상태 관리 구조
+- API 성능 개선
+- 데이터 흐름 최적화
 
 ---
 
 [고급]
 
-* 실무 수준 설계
+목표:
+- 실무 수준의 시스템 설계 능력 드러내기
 
-필수 (2개 이상):
-
-* 인증(JWT/OAuth)
-* CI/CD
-* 모니터링 / 로그
-* 대용량 처리
+필수 (최소 2개 이상 포함):
+- 인증/인가 (JWT 또는 OAuth)
+- CI/CD 또는 배포 전략
+- 성능 모니터링
+- 로그 수집 및 분석
+- 대용량 데이터 처리 전략
 
 허용:
+- 비동기 큐 (Celery 등)
+- 실시간 처리 (WebSocket 등)
+- 마이크로서비스 구조 (선택)
 
-* 큐 / 실시간 / MSA
-
-technicalChallenge:
-
-* 동시성 / 확장성 / 장애 대응 / 성능 병목
-
----
-
-검증:
-
-* 난이도보다 어려우면 반드시 낮춰 재설계
+technicalChallenge는 반드시 아래 수준:
+- 동시성 제어
+- 확장성 설계
+- 장애 대응 전략
+- 성능 병목 해결
 
 ---
 
-설계 일관성:
+[검증 규칙 - 매우 중요]
 
-* userFlow → DB → 인터페이스 → Feature 흐름 일치
-* userFlow에 없는 기능 추가 금지
+생성된 결과가 선택된 난이도보다 어렵다고 판단되면,
+반드시 난이도를 낮춰 다시 설계한다.
 
 ---
 
-출력 스키마:
+설계 일관성 규칙:
+- userFlow는 프로젝트의 핵심 사용자 여정이다.
+- databaseSchema는 userFlow에서 발생하는 데이터를 저장할 수 있도록 설계해야 한다.
+- coreApiSpecs는 userFlow 단계에서 실제로 필요한 API를 중심으로 작성해야 한다.
+- mvpFeatures는 userFlow를 실제 기능으로 구현할 수 있도록 구성해야 한다.
+- userFlow에 없는 행동을 갑자기 API나 기능 목록에 추가하지 않는다.
+
+---
+
+아래 스키마에 맞는 결과를 생성하라:
 
 {
-"projectTitle": "string",
-"oneLiner": "string",
-"technicalChallenge": "string",
-"userFlow": ["string"],
-"recommendedStack": {
-"frontend": ["string"],
-"backend": ["string"],
-"database": "string",
-"libraries": ["string"]
-},
-"databaseSchema": [
-{
-"entity": "string",
-"fields": ["string"],
-"description": "string"
-}
-],
-"coreApiSpecs": [
-{
-"method": "string",
-"path": "string",
-"description": "string"
-}
-],
-"mvpFeatures": ["string"],
-"buildSteps": ["string"],
-"readmeDraft": "string",
-"interviewPoints": ["string"]
-}
-
-필수 조건:
-
-* recommendedStack 모든 필드 값 존재 (N/A 금지)
-* databaseSchema ≥ 3
-* coreApiSpecs ≥ 3
-
----
-
-userFlow 규칙:
-
-* 4~6단계
-* 사용자 행동 기반
-* 실제 사용 흐름
-* 기술 설명 금지
-
-[유형별 userFlow 스타일]
-
-Web:
-
-* 회원가입, 생성, 조회 등 UI 중심
-
-CLI:
-
-* 명령어 실행, 옵션 입력, 결과 확인
-
-Data:
-
-* 입력 → 처리 → 결과
-
-API:
-
-* 요청 → 처리 → 응답
-
-AI:
-
-* 입력 → 분석/추론 → 결과
-
----
-
-각 필드 작성 규칙:
-
-projectTitle:
-
-* 서비스형 이름
-
-technicalChallenge:
-
-* 기술적 깊이 + 난이도 적합
-
-recommendedStack:
-
-* 실제 사용 가능한 기술만 작성
-* N/A 금지
-* libraries 3~4개
-
-database:
-
-* 반드시 존재
-* Web/API: PostgreSQL, MySQL 등
-* CLI/Data: SQLite 또는 File-based (JSON/CSV)
-
-coreApiSpecs:
-
-* "핵심 인터페이스 명세"
-
-Web/API:
-
-* REST API
-
-CLI:
-
-* command 기반
-
-예:
-{
-"command": "analyze",
-"args": ["--file", "--filter"],
-"description": "로그 분석"
+  "projectTitle": "string",
+  "oneLiner": "string",
+  "technicalChallenge": "string",
+  "userFlow": ["string"],
+  "recommendedStack": {
+    "frontend": ["string"],
+    "backend": ["string"],
+    "database": "string",
+    "libraries": ["string"]
+  },
+  "databaseSchema": [
+    {
+      "entity": "string",
+      "fields": ["string"],
+      "description": "string"
+    }
+  ],
+  "coreApiSpecs": [
+    {
+      "method": "string",
+      "path": "string",
+      "description": "string"
+    }
+  ],
+  "mvpFeatures": ["string"],
+  "buildSteps": ["string"],
+  "readmeDraft": "string",
+  "interviewPoints": ["string"]
 }
 
 ---
 
-databaseSchema:
+userFlow 작성 규칙 (매우 중요):
+- 4~6개의 단계로 작성한다.
+- "사용자 행동 흐름"을 기준으로 작성한다.
+- 기능 목록이 아니라 실제 서비스 사용 시나리오여야 한다.
+- 각 단계는 짧고 명확한 한 문장으로 작성한다.
+- 단계는 실제 사용 순서대로 작성한다.
 
-* 3~5개 엔티티
-* FK 포함
+좋은 예:
+"userFlow": [
+"사용자가 회원가입 후 로그인한다",
+"사용자가 새 프로젝트를 생성한다",
+"사용자가 데이터를 입력하거나 업로드한다",
+"사용자가 분석 실행을 요청한다",
+"시스템이 분석 결과를 대시보드로 제공한다"
+]
 
-mvpFeatures:
-
-* 5~7개
-
-buildSteps:
-
-* 6~10단계
-
-interviewPoints:
-
-* 최소 5개
-* 실무 제약 또는 트러블슈팅 포함
-
-[유형별 interviewPoints]
-
-Web:
-
-* 상태관리 / 렌더링 / UX
-
-CLI:
-
-* 파일 처리 / 메모리 / 입력 검증
-
-Data:
-
-* 파이프라인 / 성능 / 데이터 처리
-
-API:
-
-* 설계 / 인증 / 확장성
-
-AI:
-
-* 모델 선택 / 추론 / 비용 / 정확도
+잘못된 예:
+"userFlow": [
+"JWT 인증 구현",
+"REST API 개발",
+"DB 모델링",
+"React 상태 관리 구현"
+]
 
 ---
 
-readmeDraft:
+출력 규칙(매우 중요):
+- 당신의 응답은 오직 JSON.parse()가 가능한 순수 JSON 문자열이어야 합니다.
+- 어떤 서론이나 결론, 인사말, 추가 텍스트를 절대 포함하지 마십시오.
+- 마크다운 코드 펜스(\`\`\`json 등), 설명 문장, 추가 텍스트를 절대 금지한다.
+- JSON 전체 출력에서는 절대로 코드블록(\`\`\`)을 사용하지 않는다.
+- 배열로 감싸지 말 것.
 
-필수 포함:
+출력 언어 규칙:
+- 모든 문자열 값은 반드시 한국어로 작성한다.
+- 기술 용어는 영어 유지 가능
+
+---
+
+중요:
+- recommendedStack의 frontend, backend, database, libraries는 절대 "N/A"로 작성하지 않는다.
+- CLI 기반 프로젝트라도 frontend에는 "CLI Interface" 또는 "Terminal UI" 등으로 명시한다.
+- database는 반드시 하나 포함한다 (SQLite 등 경량 DB 허용)
+
+또한 아래 내용을 최소 1개 이상 반드시 포함한다:
+- 실무 환경을 가정한 기술적 제약 사항
+- 실제 운영 중 발생할 수 있는 트러블슈팅 사례
+
+readmeDraft 작성 규칙(매우 중요):
+
+다음 항목을 반드시 포함한다:
 
 # 개요
-
 ## 주요 기능
-
 ## 기술 스택
-
 ## 실행 방법
-
 ## 폴더 구조
-
 ## 개선 아이디어
 
-폴더 구조:
-
-* 코드블록
-* 최소 8줄
-* 트리 구조
-
----
-
-출력 규칙:
-
-* JSON.parse 가능한 순수 JSON
-* 코드블록 금지 (readmeDraft 제외)
-* 추가 텍스트 금지
-
-출력 언어:
-
-* 한국어
-* README는 Markdown
-
+## 폴더 구조 규칙
+- 반드시 트리 구조 코드블록을 사용한다.
+- 코드블록 언어는 bash 또는 text를 사용한다.
+- 최소 8줄 이상의 트리 구조를 작성한다.
+- ├── └── │ 문자를 사용한다.
+- 각 주요 폴더 옆에 역할 설명 주석을 추가한다.
 `.trim();
 }
 

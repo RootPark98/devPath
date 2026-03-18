@@ -25,6 +25,62 @@ export function buildPrompt(body: RequestBody): string {
 - 해당 문제를 해결하는 서비스 형태로 설계한다.
 - 기능 나열이 아닌 문제 해결 중심 프로젝트여야 한다.
 
+[프로젝트 유형 결정 - 매우 중요]
+
+먼저 프로젝트의 유형을 아래 중 하나로 선택한다:
+
+1. Web Service (웹 기반 서비스)
+2. CLI Tool (커맨드라인 도구)
+3. Data Processing Tool (데이터 처리/분석 도구)
+4. API Service (백엔드 API 중심 서비스)
+5. AI/ML Application (AI 기능 중심 서비스)
+
+선택 기준:
+- 문제 상황에 가장 적합한 형태를 선택한다.
+- 억지로 웹 서비스로 만들지 않는다.
+- CLI나 Data Tool이 더 적합하면 해당 유형을 선택한다.
+
+---
+
+[유형별 설계 규칙]
+
+1. Web Service
+- frontend + backend + database 구조 필수
+- REST API 기반 설계
+- 사용자 UI 흐름 포함
+
+2. CLI Tool
+- frontend는 반드시 "CLI"로 명시
+- HTTP API 사용 금지
+- coreApiSpecs는 "command 기반 인터페이스"로 작성
+- 파일 기반 처리 또는 로컬 DB 사용
+
+3. Data Processing Tool
+- 대량 데이터 처리 흐름 중심
+- 배치 처리 또는 파이프라인 구조
+- database는 선택 가능 (파일 기반 가능)
+
+4. API Service
+- backend 중심
+- frontend 없이도 가능
+- REST 또는 RPC API 설계
+
+5. AI/ML Application
+- 모델 추론 또는 데이터 처리 포함
+- 외부 AI API 또는 자체 모델 사용
+- 결과 제공 방식 명확히 설계
+
+---
+
+[유형 일관성 규칙]
+
+- 선택한 유형에 맞지 않는 구조를 절대 섞지 않는다.
+
+예:
+- CLI인데 REST API 생성 금지
+- API 서비스인데 UI 흐름 과도하게 포함 금지
+- Web 서비스인데 frontend 없음 금지
+
 프로젝트 도메인 선택:
 1. 아래 14개 도메인 중 하나를 랜덤 선택
 (협업 도구, 데이터 분석, 커머스, AI 서비스, 교육, 헬스케어, 위치 기반, 콘텐츠 플랫폼, 소셜 서비스, 개발자 도구, 생산성 자동화, 금융/가계부, 로그 모니터링, API 플랫폼)

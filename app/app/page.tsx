@@ -9,7 +9,6 @@ import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
 import ExportDropdown from "@/components/devpath/ExportDropdown"
-import CreditCTA from "@/components/billing/CreditCTA";
 
 import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
 import type { PlanHistoryItem } from "@/lib/devpath/history";

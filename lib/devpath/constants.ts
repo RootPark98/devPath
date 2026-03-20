@@ -1,17 +1,44 @@
 import type { Language, ProjectType } from "./types";
 
 // 이 파일은 "고정 데이터(상수)" 전용 파일이다.
-// UI 로직과 분리하면 page.tsx가 훨씬 깔끔해진다.
+// UI 로직과 분리하면 page.tsx와 form 컴포넌트가 훨씬 깔끔해진다.
 
-// 프로젝트 유형별 언어/프레임워크 매핑 테이블
-// 이제는 "언어별 프레임워크"보다 "유형별 언어 + 언어별 프레임워크" 구조가 더 자연스럽다.
+/**
+ * 프로젝트 유형 라벨
+ * - 내부 값은 영어 key
+ * - UI에는 보기 좋은 label 사용
+ */
+export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
+  web: "Web Service",
+  mobile: "Mobile App",
+  tool: "Developer Tool",
+} as const;
 
-export const LANGUAGE_OPTIONS_BY_PROJECT_TYPE: Record<ProjectType, readonly Language[]> = {
+/**
+ * 프로젝트 유형별 언어 목록
+ * - 드롭다운에서 바로 사용
+ * - projectType 선택 시 보여줄 언어를 제한
+ */
+export const LANGUAGES_BY_PROJECT_TYPE: Record<ProjectType, readonly Language[]> = {
   web: ["React/Next.js", "Python", "Java"],
   mobile: ["React Native", "Flutter", "Swift", "Kotlin"],
   tool: ["Python", "Java", "C++", "C#", "Go"],
 } as const;
 
+/**
+ * 프로젝트 유형별 기본 언어
+ * - projectType 변경 시 첫 기본값으로 사용
+ */
+export const DEFAULT_LANGUAGE_BY_PROJECT_TYPE: Record<ProjectType, Language> = {
+  web: "React/Next.js",
+  mobile: "React Native",
+  tool: "Python",
+} as const;
+
+/**
+ * 프로젝트 유형 + 언어별 프레임워크/라이브러리 목록
+ * - 언어 선택 후 framework chip/button 렌더링에 사용
+ */
 export const FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE: Record<
   ProjectType,
   Partial<Record<Language, readonly string[]>>
@@ -49,6 +76,7 @@ export const FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE: Record<
       "React Query",
       "Zustand",
       "NativeWind",
+      "React Navigation",
     ],
     Flutter: [
       "Riverpod",
@@ -74,8 +102,8 @@ export const FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE: Record<
       "Typer",
       "Click",
       "Rich",
-      "SQLAlchemy",
       "Pydantic",
+      "SQLAlchemy",
     ],
     Java: [
       "Picocli",
@@ -104,3 +132,22 @@ export const FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE: Record<
     ],
   },
 } as const;
+
+/**
+ * helper:
+ * 현재 projectType에 맞는 framework 목록 가져오기
+ */
+export function getFrameworkOptions(
+  projectType: ProjectType,
+  language: Language
+): readonly string[] {
+  return FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE[projectType][language] ?? [];
+}
+
+/**
+ * helper:
+ * 현재 projectType에 맞는 언어 목록 가져오기
+ */
+export function getLanguageOptions(projectType: ProjectType): readonly Language[] {
+  return LANGUAGES_BY_PROJECT_TYPE[projectType];
+}

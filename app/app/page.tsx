@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import AuthHeader from "@/components/auth/AuthHeader";
 
@@ -8,13 +8,24 @@ import ProjectForm from "@/components/devpath/ProjectForm";
 import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
-import ExportDropdown from "@/components/devpath/ExportDropdown"
+import ExportDropdown from "@/components/devpath/ExportDropdown";
 
-import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
+import type {
+  GeneratedPlan,
+  Language,
+  Level,
+  PlanInput,
+  ProjectType,
+} from "@/lib/devpath/types";
 import type { PlanHistoryItem } from "@/lib/devpath/history";
 import type { DevPathErrorCode } from "@/lib/devpath/api";
 
-import { FRAMEWORKS_BY_LANGUAGE } from "@/lib/devpath/constants";
+import {
+  DEFAULT_LANGUAGE_BY_PROJECT_TYPE,
+  LANGUAGES_BY_PROJECT_TYPE,
+  PROJECT_TYPE_LABELS,
+  getFrameworkOptions,
+} from "@/lib/devpath/constants";
 import { copyToClipboard } from "@/lib/devpath/clipboard";
 import { DEVPATH_EVENTS } from "@/lib/devpath/events";
 
@@ -26,25 +37,24 @@ import { DevPathClientError } from "@/lib/devpath/client/errors";
 
 export default function Home() {
   // 입력 상태
-  const [language, setLanguage] = useState<Language>("React/Next.js");
+  const [projectType, setProjectType] = useState<ProjectType>("web");
+  const [language, setLanguage] = useState<Language>(
+    DEFAULT_LANGUAGE_BY_PROJECT_TYPE.web
+  );
   const [level, setLevel] = useState<Level>("초급");
   const [frameworks, setFrameworks] = useState<string[]>([]);
 
   // UX 상태
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
-  const [planInput, setPlanInput] = useState<{
-      language: Language;
-      level: Level;
-      frameworks: string[];
-    } | null>(null);
+  const [planInput, setPlanInput] = useState<PlanInput | null>(null);
   const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(null);
 
-  // ✅ 인증 상태
+  // 인증 상태
   const { me, loadingMe } = useMe();
   const authenticated = !loadingMe && !!me?.authenticated;
 
-  // ✅ history state (DB)
+  // history state
   const {
     items: historyItems,
     loading: historyLoading,
@@ -53,23 +63,38 @@ export default function Home() {
     clear: clearHistory,
   } = useHistory(authenticated);
 
-  // 언어 변경 시, 허용되지 않는 프레임워크 제거
+  const currentLanguages = useMemo(
+    () => LANGUAGES_BY_PROJECT_TYPE[projectType],
+    [projectType]
+  );
+
+  const currentFrameworkOptions = useMemo(
+    () => getFrameworkOptions(projectType, language),
+    [projectType, language]
+  );
+
+  const handleProjectTypeChange = (next: ProjectType) => {
+    setProjectType(next);
+
+    const nextLanguage = DEFAULT_LANGUAGE_BY_PROJECT_TYPE[next];
+    setLanguage(nextLanguage);
+    setFrameworks([]);
+  };
+
   const handleLanguageChange = (next: Language) => {
     setLanguage(next);
-    const nextSet = new Set(FRAMEWORKS_BY_LANGUAGE[next]);
+    const nextSet = new Set(getFrameworkOptions(projectType, next));
     setFrameworks((prev) => prev.filter((f) => nextSet.has(f)));
   };
 
-  // 프레임워크 토글
   const toggleFramework = (name: string) => {
-    setFrameworks((prev) => (prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]));
+    setFrameworks((prev) =>
+      prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]
+    );
   };
 
-  // AI 호출 (+ 서버에서 history 저장됨)
   const handleSubmit = async () => {
     if (loading) return;
-
-    // 🔒 방어 코드
     if (!authenticated) return;
 
     setLoading(true);
@@ -78,16 +103,21 @@ export default function Home() {
     setPlanInput(null);
 
     try {
-      const { input, output } = await generatePlan({ language, level, frameworks });
+      const payload: PlanInput = {
+        projectType,
+        language,
+        level,
+        frameworks,
+      };
+
+      const { input, output } = await generatePlan(payload);
 
       setPlan(output);
       setPlanInput(input);
 
-      // ✅ 서버가 저장했으니 목록만 동기화
       await refreshHistory();
 
-      // ✅ 크레딧 잔고 갱신 트리거 (CreditCTA가 이 이벤트 듣고 refetch)
-      window.dispatchEvent(new Event((DEVPATH_EVENTS.creditsUpdated)));
+      window.dispatchEvent(new Event(DEVPATH_EVENTS.creditsUpdated));
     } catch (e: any) {
       if (e instanceof DevPathClientError) {
         setError({ code: e.code, message: e.message });
@@ -99,27 +129,36 @@ export default function Home() {
     }
   };
 
-  // 히스토리 복원
   const restoreHistory = (item: PlanHistoryItem) => {
-    // setLanguage(item.input.language);
-    // setLevel(item.input.level);
-    // setFrameworks(item.input.frameworks);
+    const restoredInput: PlanInput = {
+      projectType: item.input.projectType ?? "web",
+      language: item.input.language,
+      level: item.input.level,
+      frameworks: item.input.frameworks ?? [],
+    };
+
+    setProjectType(restoredInput.projectType);
+    setLanguage(restoredInput.language);
+    setLevel(restoredInput.level);
+    setFrameworks(restoredInput.frameworks);
+
     setPlan(item.output);
-    setPlanInput(item.input)
+    setPlanInput(restoredInput);
     setError(null);
   };
 
   const fullCopyText =
-  plan &&
-  `
+    plan &&
+    `
 [입력]
+- 프로젝트 유형: ${PROJECT_TYPE_LABELS[planInput?.projectType ?? projectType]}
 - 언어/스택: ${planInput?.language ?? language}
 - 난이도: ${planInput?.level ?? level}
 - 프레임워크/라이브러리: ${
-    (planInput?.frameworks?.length ?? frameworks.length)
-      ? (planInput?.frameworks ?? frameworks).join(", ")
-      : "(선택 없음)"
-  }
+      (planInput?.frameworks?.length ?? frameworks.length)
+        ? (planInput?.frameworks ?? frameworks).join(", ")
+        : "(선택 없음)"
+    }
 
 [제목]
 ${plan.projectTitle}
@@ -176,15 +215,18 @@ ${plan.readmeDraft}
   return (
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
       <AuthHeader />
-      {/* <CreditCTA /> */}
       {error && <ErrorBanner title="오류" message={error.message} disabled={loading} />}
-      
+
       <ProjectForm
+        projectType={projectType}
         language={language}
         level={level}
+        languages={currentLanguages}
+        frameworkOptions={currentFrameworkOptions}
         frameworks={frameworks}
         loading={loading}
-        authenticated={authenticated} // ✅ 여기 통일
+        authenticated={authenticated}
+        onChangeProjectType={handleProjectTypeChange}
         onChangeLanguage={handleLanguageChange}
         onChangeLevel={setLevel}
         onToggleFramework={toggleFramework}
@@ -235,13 +277,12 @@ ${plan.readmeDraft}
       )}
 
       <HistoryPanel
-        items={historyItems}          // ✅ 변수명 수정
+        items={historyItems}
         onRestore={restoreHistory}
         onDelete={(id) => {
           removeHistory(id);
-          }
-        }
-        onClear={clearHistory}        // ✅ 변수명 수정
+        }}
+        onClear={clearHistory}
       />
     </main>
   );

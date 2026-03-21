@@ -1,4 +1,5 @@
 import type { GeneratePlanInput } from "@/lib/devpath/types";
+import { PROJECT_TYPE_LABELS } from "@/lib/devpath/constants";
 
 /**
  * 프롬프트 생성 레이어
@@ -7,21 +8,47 @@ import type { GeneratePlanInput } from "@/lib/devpath/types";
  */
 
 export function buildPrompt(body: GeneratePlanInput): string {
-  const frameworksLine = body.frameworks.length > 0 ? body.frameworks.join(", ") : "선택 없음";
+  const frameworksLine =
+    body.frameworks.length > 0 ? body.frameworks.join(", ") : "선택 없음";
+
+  const projectTypeLabel = PROJECT_TYPE_LABELS[body.projectType];
 
   return `
 너는 개발자 취준생을 위한 전문 포트폴리오 프로젝트 설계자다.
 단순한 토이 프로젝트가 아니라, 실제 실무에서 겪는 고민(데이터 흐름, 상태 관리, 예외 처리, 성능/확장성, 유지보수)을 드러낼 수 있는 프로젝트를 설계한다.
 
 사용자 입력:
+- 프로젝트 유형: ${projectTypeLabel}
 - 언어/스택: ${body.language}
 - 난이도: ${body.level}
 - 프레임워크/라이브러리(선택): ${frameworksLine}
 
 프로젝트 생성 방식(중요):
 - 먼저 "현실적인 문제 상황"을 하나 설정한다.
-- 그 문제를 해결하기 위한 서비스 형태의 프로젝트를 설계한다.
-- 단순 기능 구현이 아니라 문제 해결 중심 서비스여야 한다.
+- 그 문제를 해결하기 위한 서비스 또는 도구 형태의 프로젝트를 설계한다.
+- 단순 기능 구현이 아니라 문제 해결 중심 프로젝트여야 한다.
+
+[프로젝트 유형 강제 규칙 - 매우 중요]
+- 선택된 프로젝트 유형(${projectTypeLabel})에 맞는 결과만 생성한다.
+- 프로젝트 유형과 맞지 않는 구조를 섞지 않는다.
+
+1. Web Service
+- 사용자 UI가 반드시 존재해야 한다.
+- frontend + backend + database 구조를 기본으로 한다.
+- userFlow는 브라우저 또는 웹 화면 기준의 사용자 행동 흐름이어야 한다.
+- coreApiSpecs는 REST API 중심으로 작성한다.
+
+2. Mobile App
+- 모바일 UX를 중심으로 설계한다.
+- 앱 화면 흐름, 상태 유지, 알림, 오프라인 대응 중 최소 1개 이상 고려한다.
+- userFlow는 앱 사용 흐름 기준으로 작성한다.
+- coreApiSpecs는 앱이 사용하는 API 중심으로 작성한다.
+
+3. Developer Tool
+- CLI, 라이브러리, SDK, 내부 자동화 도구 형태를 허용한다.
+- frontend는 없을 수도 있으나, 반드시 명확한 인터페이스가 있어야 한다.
+- userFlow는 명령 실행, 입력, 처리, 결과 확인 흐름으로 작성할 수 있다.
+- coreApiSpecs는 REST API가 아니라 command/interface spec 형태도 허용한다.
 
 [추가 규칙 - 프로젝트 재미/참신성 (매우 중요)]
 - 흔한 주제(로그 분석, 단순 관리 도구, CRUD 관리 시스템)는 피한다.
@@ -31,7 +58,7 @@ export function buildPrompt(body: GeneratePlanInput): string {
   - 실제 생활 문제를 해결하는 시나리오
   - 데이터 흐름이 눈에 보이는 구조 (대시보드, 시각화 등)
   - 약한 수준의 “서비스 느낌” (단순 도구가 아니라 서비스처럼 보일 것)
-- CLI 도구만으로 끝나는 프로젝트는 생성하지 않는다 (반드시 사용자 흐름이 보이는 구조 포함)
+- 단순한 CLI 유틸리티나 기술 데모 수준으로 끝나는 프로젝트는 생성하지 않는다.
 
 프로젝트 도메인 선택 규칙:
 
@@ -62,8 +89,8 @@ export function buildPrompt(body: GeneratePlanInput): string {
 [초급]
 
 목표:
-- 기본적인 웹 서비스 구조 이해
-- 단일 서버 기반의 안정적인 CRUD + 흐름 설계
+- 기본적인 서비스/도구 구조 이해
+- 단일 구조 기반의 안정적인 흐름 설계
 
 금지:
 - 실시간 처리 (WebSocket, 스트리밍, 채팅 등)
@@ -149,7 +176,7 @@ technicalChallenge는 반드시 아래 수준:
 설계 일관성 규칙:
 - userFlow는 프로젝트의 핵심 사용자 여정이다.
 - databaseSchema는 userFlow에서 발생하는 데이터를 저장할 수 있도록 설계해야 한다.
-- coreApiSpecs는 userFlow 단계에서 실제로 필요한 API를 중심으로 작성해야 한다.
+- coreApiSpecs는 userFlow 단계에서 실제로 필요한 인터페이스를 중심으로 작성해야 한다.
 - mvpFeatures는 userFlow를 실제 기능으로 구현할 수 있도록 구성해야 한다.
 - userFlow에 없는 행동을 갑자기 API나 기능 목록에 추가하지 않는다.
 
@@ -193,7 +220,7 @@ technicalChallenge는 반드시 아래 수준:
 userFlow 작성 규칙 (매우 중요):
 - 4~6개의 단계로 작성한다.
 - "사용자 행동 흐름"을 기준으로 작성한다.
-- 기능 목록이 아니라 실제 서비스 사용 시나리오여야 한다.
+- 기능 목록이 아니라 실제 서비스 또는 도구 사용 시나리오여야 한다.
 - 각 단계는 짧고 명확한 한 문장으로 작성한다.
 - 단계는 실제 사용 순서대로 작성한다.
 
@@ -214,6 +241,14 @@ userFlow 작성 규칙 (매우 중요):
 "React 상태 관리 구현"
 ]
 
+Developer Tool 예시:
+"userFlow": [
+"사용자가 명령어로 입력 파일 경로를 전달한다",
+"사용자가 실행 옵션을 선택한다",
+"시스템이 입력 데이터를 처리한다",
+"사용자가 콘솔 또는 출력 파일에서 결과를 확인한다"
+]
+
 ---
 
 출력 규칙(매우 중요):
@@ -231,8 +266,11 @@ userFlow 작성 규칙 (매우 중요):
 
 중요:
 - recommendedStack의 frontend, backend, database, libraries는 절대 "N/A"로 작성하지 않는다.
-- CLI 기반 프로젝트라도 frontend에는 "CLI Interface" 또는 "Terminal UI" 등으로 명시한다.
+- Web Service, Mobile App에서는 frontend가 반드시 존재해야 한다.
+- Developer Tool에서는 frontend에 "CLI Interface", "Terminal UI", "SDK Interface" 등 실제 인터페이스를 명시한다.
 - database는 반드시 하나 포함한다 (SQLite 등 경량 DB 허용)
+- AI, 맞춤형 생성, 자동 추천, 분석 생성과 같은 표현을 사용하는 경우, 반드시 외부 AI API 또는 명확한 모델 기반 로직을 포함해야 한다.
+- 그렇지 않으면 제목과 oneLiner를 규칙 기반 서비스 수준에 맞게 낮춰 작성한다.
 
 또한 아래 내용을 최소 1개 이상 반드시 포함한다:
 - 실무 환경을 가정한 기술적 제약 사항
@@ -257,4 +295,3 @@ readmeDraft 작성 규칙(매우 중요):
 - 각 주요 폴더 옆에 역할 설명 주석을 추가한다.
 `.trim();
 }
-

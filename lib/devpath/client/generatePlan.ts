@@ -1,29 +1,11 @@
-import type { GeneratedPlan, Language, Level } from "@/lib/devpath/types";
+import type { GeneratePlanInput, GeneratePlanResponse } from "@/lib/devpath/types";
 import { readApiResponse } from "@/lib/devpath/client/errors";
-import {
-  isLanguage,
-  isLevel,
-  sanitizeFrameworks,
-  type RequestBody,
-} from "@/lib/devpath/server/input";
 
 /**
  * 클라이언트에서 /api/generate 호출 캡슐화
  * - page.tsx는 네트워크 상세를 몰라도 됨
  * - 이후 플랜 제한/로그/공통 에러 처리 정책을 여기서 통제
  */
-
-export type GeneratePlanInput = {
-  language: Language;
-  level: Level;
-  frameworks: string[];
-};
-
-export type GeneratePlanResponse = {
-  input: RequestBody;
-  output: GeneratedPlan;
-  historyId: string;
-};
 
 export async function generatePlan(input: GeneratePlanInput): Promise<GeneratePlanResponse> {
   const res = await fetch("/api/generate", {

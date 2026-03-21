@@ -1,4 +1,4 @@
-import type { RequestBody } from "./input";
+import type { GeneratePlanInput } from "@/lib/devpath/types";
 
 /**
  * 프롬프트 생성 레이어
@@ -6,7 +6,7 @@ import type { RequestBody } from "./input";
  * - 나중에 프롬프트 A/B 테스트나 버전 관리도 쉬워짐
  */
 
-export function buildPrompt(body: RequestBody): string {
+export function buildPrompt(body: GeneratePlanInput): string {
   const frameworksLine = body.frameworks.length > 0 ? body.frameworks.join(", ") : "선택 없음";
 
   return `

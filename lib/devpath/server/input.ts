@@ -19,13 +19,6 @@ import {
  * - frameworks는 해당 projectType + language 허용 목록만 통과시키기
  */
 
-export type RequestBody = {
-  projectType: ProjectType;
-  language: Language;
-  level: Level;
-  frameworks: string[];
-};
-
 export function isProjectType(x: any): x is ProjectType {
   return PROJECT_TYPES.includes(x);
 }

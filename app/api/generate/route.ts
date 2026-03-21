@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { randomUUID } from "crypto";
 
-import type { GeneratedPlan } from "@/lib/devpath/types";
+import type { GeneratePlanInput, GeneratePlanResponse } from "@/lib/devpath/types";
 import { apiOk, apiErr } from "@/lib/devpath/api.server";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
@@ -10,18 +10,11 @@ import {
   isLanguage,
   isLevel,
   sanitizeFrameworks,
-  type RequestBody,
 } from "@/lib/devpath/server/input";
 import { buildPrompt } from "@/lib/devpath/server/prompt";
 import { callGeminiGenerateContent } from "@/lib/devpath/server/gemini";
 import { safeParseGeminiJson } from "@/lib/devpath/server/parse";
 import { coercePlan, validatePlan } from "@/lib/devpath/server/validate";
-
-export type GeneratePlanResponse = {
-  input: RequestBody;
-  output: GeneratedPlan;
-  historyId: string;
-};
 
 function getGenerateCost() {
   const raw = Number(process.env.GENERATE_CREDIT_COST ?? 10);
@@ -79,10 +72,11 @@ export async function POST(request: Request) {
       return apiErr("INVALID_INPUT", "잘못된 입력값입니다.", 400);
     }
 
-    const body: RequestBody = {
+    const body: GeneratePlanInput = {
+      projectType: raw.projectType, // 👈 이거 추가 (중요)
       language: raw.language,
       level: raw.level,
-      frameworks: sanitizeFrameworks(raw.language, raw.frameworks),
+      frameworks: sanitizeFrameworks(raw.projectType, raw.language, raw.frameworks),
     };
 
     // ✅ 크레딧 먼저 “예약(차감)”

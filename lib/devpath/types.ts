@@ -71,3 +71,16 @@ export type PlanHistoryItem = {
   input: PlanInput;
   output: GeneratedPlan;
 };
+
+export type GeneratePlanInput = {
+  projectType: ProjectType;
+  language: Language;
+  level: Level;
+  frameworks: string[];
+};
+
+export type GeneratePlanResponse = {
+  input: GeneratePlanInput; // ✅ RequestBody 제거
+  output: GeneratedPlan;
+  historyId: string;
+};

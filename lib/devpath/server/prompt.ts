@@ -28,6 +28,38 @@ export function buildPrompt(body: GeneratePlanInput): string {
 - 그 문제를 해결하기 위한 서비스 또는 도구 형태의 프로젝트를 설계한다.
 - 단순 기능 구현이 아니라 문제 해결 중심 프로젝트여야 한다.
 
+[생성 순서 강제 규칙 - 매우 중요]
+
+아래 순서를 반드시 지켜서 프로젝트를 설계한다:
+
+1. userFlow를 먼저 작성한다.
+2. userFlow를 기반으로 필요한 데이터(entity)를 정의한다.
+3. 그 데이터를 저장하기 위한 databaseSchema를 설계한다.
+4. databaseSchema를 기반으로 필요한 API(coreApiSpecs)를 결정한다. (서버 기반인 경우에만)
+5. 마지막으로 recommendedStack을 선택한다.
+
+금지:
+- databaseSchema를 먼저 생성하는 것
+- userFlow와 무관한 generic 엔티티(Project, Activity 등)를 추가하는 것
+
+[아키텍처 선택 규칙 - 매우 중요]
+
+프로젝트 설계 시작 전에 반드시 아래 중 하나를 먼저 선택한다:
+
+1. 로컬 기반 (온디바이스)
+- AsyncStorage 또는 SQLite 사용
+- Backend와 API를 생성하지 않는다.
+
+2. 서버 기반
+- Backend + Database + API를 반드시 포함한다.
+- AsyncStorage는 캐싱 용도로만 제한적으로 사용한다.
+
+- backend에는 구체적인 기술 이름만 작성한다. (예: Node.js, Firebase 등)
+- "기본", "일반적인" 등의 모호한 표현 금지
+
+금지:
+- 두 방식을 혼합하는 것 (AsyncStorage + API + SQLite 동시 사용 금지)
+
 [프로젝트 유형 강제 규칙 - 매우 중요]
 - 선택된 프로젝트 유형(${projectTypeLabel})에 맞는 결과만 생성한다.
 - 프로젝트 유형과 맞지 않는 구조를 섞지 않는다.
@@ -179,6 +211,27 @@ technicalChallenge는 반드시 아래 수준:
 - coreApiSpecs는 userFlow 단계에서 실제로 필요한 인터페이스를 중심으로 작성해야 한다.
 - mvpFeatures는 userFlow를 실제 기능으로 구현할 수 있도록 구성해야 한다.
 - userFlow에 없는 행동을 갑자기 API나 기능 목록에 추가하지 않는다.
+- 전체 설계는 하나의 일관된 시스템처럼 동작해야 한다.
+- 서로 충돌되는 기술 선택을 포함하지 않는다.
+
+---
+
+[recommendedStack 일관성 규칙 (매우 중요)]
+
+- Backend가 존재하면 반드시 coreApiSpecs가 존재해야 한다.
+- Backend가 없으면 coreApiSpecs를 생성하지 않는다.
+- database 선택은 저장 방식과 반드시 일치해야 한다.
+- recommendedStack, databaseSchema, coreApiSpecs는 하나의 시스템처럼 일관되어야 한다.
+- "N/A" 사용 금지
+
+---
+
+[databaseSchema 작성 규칙 (매우 중요)]
+
+- 모든 엔티티는 userFlow에서 등장하는 개념을 기반으로 생성한다.
+- userFlow에 없는 generic 엔티티(Project, Activity 등)를 생성하지 않는다.
+- 실제 서비스 도메인 기반으로 설계한다.
+- databaseSchema는 반드시 userFlow 각 단계에서 필요한 데이터를 설명할 수 있어야 한다.
 
 ---
 
@@ -251,6 +304,34 @@ Developer Tool 예시:
 
 ---
 
+buildSteps 작성 규칙 (매우 중요):
+
+- 단계는 실제 개발 흐름 순서대로 작성한다.
+- 최소 6단계 이상 작성한다.
+- 마지막 단계는 반드시 "배포 및 운영 고려" 단계여야 한다.
+
+배포 단계 규칙:
+- 난이도(${body.level})에 맞는 현실적인 배포 전략을 포함한다.
+- 마지막 배포 단계는 readmeDraft에 그대로 반영될 수 있도록 구체적으로 작성한다.
+
+[초급]
+- Vercel, Render, Railway 등 간단한 PaaS 기반 배포를 사용한다.
+- 환경 변수 설정, 간단한 배포 흐름 정도만 포함한다.
+
+[중급]
+- Docker 기반 배포 또는 간단한 클라우드 환경(AWS, GCP 등)을 포함한다.
+- 빌드/배포 흐름을 간단히 설명한다.
+
+[고급]ㄴ
+- CI/CD(GitHub Actions 등), 모니터링, 로그 확인 중 최소 1개 이상 포함한다.
+- 실제 운영을 고려한 배포 흐름을 포함한다.
+
+- 과도한 인프라 설계는 금지한다.
+- "학습 가능한 수준의 현실적인 배포"를 목표로 한다.
+- 마지막 배포 단계는 readmeDraft에 그대로 반영될 수 있도록 구체적으로 작성한다.
+
+---
+
 출력 규칙(매우 중요):
 - 당신의 응답은 오직 JSON.parse()가 가능한 순수 JSON 문자열이어야 합니다.
 - 어떤 서론이나 결론, 인사말, 추가 텍스트를 절대 포함하지 마십시오.
@@ -284,8 +365,14 @@ readmeDraft 작성 규칙(매우 중요):
 ## 주요 기능
 ## 기술 스택
 ## 실행 방법
+## 배포 방법
 ## 폴더 구조
 ## 개선 아이디어
+
+## 배포 방법 규칙:
+- 난이도에 맞는 간단한 배포 방법을 설명한다.
+- 실제로 따라할 수 있는 수준으로 작성한다.
+- 과도한 인프라 설명은 금지한다.
 
 ## 폴더 구조 규칙
 - 반드시 트리 구조 코드블록을 사용한다.
@@ -293,5 +380,11 @@ readmeDraft 작성 규칙(매우 중요):
 - 최소 8줄 이상의 트리 구조를 작성한다.
 - ├── └── │ 문자를 사용한다.
 - 각 주요 폴더 옆에 역할 설명 주석을 추가한다.
+
+readmeDraft 일관성 규칙 (매우 중요):
+
+- "배포 방법" 섹션은 buildSteps의 마지막 단계(배포 단계)를 기반으로 작성해야 한다.
+- buildSteps에 없는 배포 방식이나 기술을 새로 추가하지 않는다.
+- buildSteps의 배포 전략을 요약/정리하는 형태로 작성한다.
 `.trim();
 }

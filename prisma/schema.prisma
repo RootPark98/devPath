@@ -23,6 +23,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   histories     History[]
+  feedbacks     PlanFeedback[]
 
   creditBalance CreditBalance?
   creditLedgers CreditLedger[]
@@ -74,6 +75,35 @@ model History {
   output    Json
 
   createdAt DateTime @default(now())
+  feedbacks PlanFeedback[]
+}
+
+enum FeedbackRating {
+  UP
+  DOWN
+}
+
+model PlanFeedback {
+  id            String          @id @default(cuid())
+
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  historyId     String?
+  history       History?        @relation(fields: [historyId], references: [id], onDelete: SetNull)
+
+  rating        FeedbackRating
+  reasonTags    String[]
+  comment       String?
+
+  inputSnapshot Json
+  outputSnapshot Json
+
+  createdAt     DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([historyId, createdAt])
+  @@index([rating, createdAt])
 }
 
 enum PaymentStatus {

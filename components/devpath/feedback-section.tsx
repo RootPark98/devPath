@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 type FeedbackRating = "up" | "down";
 type FeedbackReason =
@@ -16,6 +16,7 @@ type FeedbackSectionProps = {
   planHistoryId?: string;
   inputSnapshot: unknown;
   outputSnapshot: unknown;
+  resetSignal?:number;
 };
 
 const NEGATIVE_REASONS: { value: FeedbackReason; label: string }[] = [
@@ -32,6 +33,7 @@ export function FeedbackSection({
   planHistoryId,
   inputSnapshot,
   outputSnapshot,
+  resetSignal,
 }: FeedbackSectionProps) {
   const [rating, setRating] = useState<FeedbackRating | null>(null);
   const [reasonTags, setReasonTags] = useState<FeedbackReason[]>([]);
@@ -41,6 +43,14 @@ export function FeedbackSection({
 
   const isNegative = rating === "down";
   const isPositive = rating === "up";
+
+  useEffect(() => {
+    setRating(null);
+    setReasonTags([]);
+    setComment("");
+    setIsCommentOpen(false);
+    setIsSubmitted(false);
+  }, [resetSignal]);
 
   const canSubmit = useMemo(() => {
     if (!rating) return false;

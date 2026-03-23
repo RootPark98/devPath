@@ -52,6 +52,8 @@ export default function Home() {
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
   const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(null);
 
+  const [feedbackVersion, setFeedbackVersion] = useState(0);
+
   // 인증 상태
   const { me, loadingMe } = useMe();
   const authenticated = !loadingMe && !!me?.authenticated;
@@ -118,6 +120,7 @@ export default function Home() {
       setPlan(output);
       setPlanInput(input);
       setActiveHistoryId(historyId);
+      setFeedbackVersion((prev) => prev + 1);
 
       await refreshHistory();
 
@@ -149,6 +152,7 @@ export default function Home() {
     setPlan(item.output);
     setPlanInput(restoredInput);
     setActiveHistoryId(item.id);
+    setFeedbackVersion((prev) => prev + 1);
     setError(null);
   };
 
@@ -280,10 +284,10 @@ ${plan.readmeDraft}
           />
 
           <FeedbackSection
-            key={activeHistoryId}
             planHistoryId={activeHistoryId ?? undefined}
             inputSnapshot={planInput}
             outputSnapshot={plan}
+            resetSignal={feedbackVersion}
           />
         </>
       )}

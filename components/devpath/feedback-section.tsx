@@ -85,9 +85,24 @@ export function FeedbackSection({
       outputSnapshot,
     };
 
-    console.log("feedback payload", payload);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    setIsSubmitted(true);
+      if (!res.ok) {
+        throw new Error("feedback submit failed");
+      }
+
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error(error);
+      alert("피드백 제출에 실패했습니다.");
+    }
   };
 
   return (

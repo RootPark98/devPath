@@ -103,6 +103,7 @@ export default function Home() {
     setError(null);
     setPlan(null);
     setPlanInput(null);
+    setActiveHistoryId(null);
 
     try {
       const payload: PlanInput = {
@@ -280,7 +281,7 @@ ${plan.readmeDraft}
 
           <FeedbackSection
             key={activeHistoryId}
-            planHistoryId={undefined}
+            planHistoryId={activeHistoryId ?? undefined}
             inputSnapshot={planInput}
             outputSnapshot={plan}
           />

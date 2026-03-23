@@ -235,6 +235,12 @@ technicalChallenge는 반드시 아래 수준:
 
 ---
 
+Mobile App 배포 규칙:
+- Vercel 사용 금지
+- Expo, EAS, Play Store, App Store 기반 배포만 허용
+
+---
+
 아래 스키마에 맞는 결과를 생성하라:
 
 {

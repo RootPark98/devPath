@@ -9,6 +9,7 @@ import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
 import ExportDropdown from "@/components/devpath/ExportDropdown";
+import { FeedbackSection } from "@/components/devpath/feedback-section";
 
 import type {
   GeneratedPlan,
@@ -48,6 +49,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<GeneratedPlan | null>(null);
   const [planInput, setPlanInput] = useState<PlanInput | null>(null);
+  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
   const [error, setError] = useState<{ code?: DevPathErrorCode; message: string } | null>(null);
 
   // 인증 상태
@@ -110,10 +112,11 @@ export default function Home() {
         frameworks,
       };
 
-      const { input, output } = await generatePlan(payload);
+      const { input, output, historyId } = await generatePlan(payload);
 
       setPlan(output);
       setPlanInput(input);
+      setActiveHistoryId(historyId);
 
       await refreshHistory();
 
@@ -144,6 +147,7 @@ export default function Home() {
 
     setPlan(item.output);
     setPlanInput(restoredInput);
+    setActiveHistoryId(item.id);
     setError(null);
   };
 
@@ -272,6 +276,13 @@ ${plan.readmeDraft}
                 alert("복사 실패");
               }
             }}
+          />
+
+          <FeedbackSection
+            key={activeHistoryId}
+            planHistoryId={undefined}
+            inputSnapshot={planInput}
+            outputSnapshot={plan}
           />
         </>
       )}

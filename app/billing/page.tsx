@@ -8,8 +8,6 @@ const PACKAGES = [
   {
     type: "starter" as const,
     name: "Starter",
-    badge: "입문",
-    desc: "가볍게 체험/1~2개 프로젝트",
     credits: 50,
     price: 2900,
     highlight: false,
@@ -17,8 +15,6 @@ const PACKAGES = [
   {
     type: "pro" as const,
     name: "Pro",
-    badge: "추천",
-    desc: "가장 많이 선택하는 패키지",
     credits: 100,
     price: 4900,
     highlight: true,
@@ -95,7 +91,7 @@ export default async function BillingPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-base font-semibold">{p.name}</h2>
-                    <span
+                    {/* <span
                       className={[
                         "rounded-full px-2.5 py-1 text-xs font-semibold",
                         p.highlight
@@ -103,10 +99,8 @@ export default async function BillingPage() {
                           : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100",
                       ].join(" ")}
                     >
-                      {p.badge}
-                    </span>
+                    </span> */}
                   </div>
-                  <p className="mt-1 text-xs dp-muted">{p.desc}</p>
                 </div>
               </div>
 
@@ -128,7 +122,7 @@ export default async function BillingPage() {
               <div className="mt-5">
                 <BuyCreditsButton
                   packageType={p.type}
-                  label={p.highlight ? "가장 인기 — 구매하기" : "구매하기"}
+                  label={ "구매하기" }
                 />
               </div>
 

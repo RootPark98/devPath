@@ -157,7 +157,7 @@ export default function PlanResult(props: {
         </Card>
 
         <Card id="readme" title="README 미리보기" subtitle="GitHub에 바로 붙여 넣을 수 있는 형태의 초안입니다." rightSlot={<CopyHint />}>
-          <div className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+          <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800">
             <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950/40">
               <p className="text-xs font-medium dp-muted">README.md</p>
 

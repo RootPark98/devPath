@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
+
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { apiErr, apiOk } from "@/lib/devpath/api.server";
 
 const ALLOWED_REASON_TAGS = [
   "difficulty_mismatch",
@@ -37,9 +38,10 @@ function isValidRating(value: unknown): value is FeedbackRating {
 function sanitizeReasonTags(value: unknown): FeedbackReason[] {
   if (!Array.isArray(value)) return [];
 
-  return value.filter((tag): tag is FeedbackReason =>
-    typeof tag === "string" &&
-    (ALLOWED_REASON_TAGS as readonly string[]).includes(tag),
+  return value.filter(
+    (tag): tag is FeedbackReason =>
+      typeof tag === "string" &&
+      (ALLOWED_REASON_TAGS as readonly string[]).includes(tag)
   );
 }
 
@@ -48,26 +50,17 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
+      return apiErr("UNAUTHENTICATED", "로그인이 필요합니다.", 401);
     }
 
     const body = (await req.json()) as FeedbackRequestBody;
 
     if (!isValidRating(body?.rating)) {
-      return NextResponse.json(
-        { error: "Invalid rating" },
-        { status: 400 },
-      );
+      return apiErr("INVALID_INPUT", "유효하지 않은 피드백 타입입니다.", 400);
     }
 
     if (!isObject(body?.inputSnapshot) || !isObject(body?.outputSnapshot)) {
-      return NextResponse.json(
-        { error: "Invalid snapshot payload" },
-        { status: 400 },
-      );
+      return apiErr("INVALID_INPUT", "유효하지 않은 스냅샷 데이터입니다.", 400);
     }
 
     const reasonTags = sanitizeReasonTags(body.reasonTags);
@@ -77,9 +70,10 @@ export async function POST(req: Request) {
         : null;
 
     if (body.rating === "down" && reasonTags.length === 0 && !comment) {
-      return NextResponse.json(
-        { error: "Negative feedback requires reasonTags or comment" },
-        { status: 400 },
+      return apiErr(
+        "INVALID_INPUT",
+        "아쉬운 피드백에는 이유 태그 또는 코멘트가 필요합니다.",
+        400
       );
     }
 
@@ -98,13 +92,10 @@ export async function POST(req: Request) {
       });
 
       if (!history) {
-        return NextResponse.json(
-          { error: "History not found" },
-          { status: 404 },
-        );
+        return apiErr("NOT_FOUND", "해당 히스토리를 찾을 수 없습니다.", 404);
       }
     }
-    
+
     const feedback = await prisma.planFeedback.create({
       data: {
         userId: session.user.id,
@@ -121,17 +112,17 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({
-      ok: true,
+    return apiOk({
       feedbackId: feedback.id,
       createdAt: feedback.createdAt,
     });
   } catch (error) {
     console.error("[POST /api/feedback] error:", error);
 
-    return NextResponse.json(
-      { error: "Failed to save feedback" },
-      { status: 500 },
+    return apiErr(
+      "INTERNAL_ERROR",
+      "피드백 저장 중 오류가 발생했습니다.",
+      500
     );
   }
 }

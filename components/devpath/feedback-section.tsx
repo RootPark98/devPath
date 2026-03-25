@@ -104,7 +104,9 @@ export function FeedbackSection({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
+      const result = await res.json();
+
+      if (!res.ok || !result.ok) {
         throw new Error("feedback submit failed");
       }
 

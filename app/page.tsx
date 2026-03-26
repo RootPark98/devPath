@@ -89,8 +89,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="mt-20 text-center text-xs dp-muted">
-        © {new Date().getFullYear()} DevPath
+      <footer className="mt-20 text-center text-xs dp-muted space-y-3">
+        <div className="flex justify-center gap-4">
+          <Link href="/terms" className="hover:underline">
+            이용약관
+          </Link>
+          <Link href="/privacy" className="hover:underline">
+            개인정보처리방침
+          </Link>
+          <Link href="/refund" className="hover:underline">
+            환불정책
+          </Link>
+        </div>
+
+        <div>
+          © {new Date().getFullYear()} DevPath
+        </div>
       </footer>
     </main>
   );

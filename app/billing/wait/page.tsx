@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 type Status = "PENDING" | "PAID" | "FAILED" | "CANCELED" | "CANCELLED" | string;
 
@@ -18,14 +20,46 @@ function prettyStatus(s: Status) {
 }
 
 function badgeClass(s: Status) {
-  if (s === "PAID")
+  if (s === "PAID") {
     return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300";
-  if (s === "FAILED" || s === "CANCELED" || s === "CANCELLED")
+  }
+  if (s === "FAILED" || s === "CANCELED" || s === "CANCELLED") {
     return "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300";
+  }
   return "border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-200";
 }
 
 export default function BillingWaitPage() {
+  return (
+    <Suspense fallback={<BillingWaitFallback />}>
+      <BillingWaitContent />
+    </Suspense>
+  );
+}
+
+function BillingWaitFallback() {
+  return (
+    <main className="min-h-[70vh] grid place-items-center px-4 py-10">
+      <div className="w-full max-w-md">
+        <section className="dp-card">
+          <div className="space-y-2">
+            <h1 className="text-lg font-semibold">결제 처리</h1>
+            <p className="text-sm dp-muted">결제 상태를 불러오는 중입니다.</p>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <div
+              className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-300 border-t-transparent dark:border-neutral-700"
+              aria-label="loading"
+            />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function BillingWaitContent() {
   const router = useRouter();
   const sp = useSearchParams();
   const paymentId = sp.get("paymentId") ?? "";
@@ -95,7 +129,6 @@ export default function BillingWaitPage() {
     };
   }, [canPoll, paymentId, router]);
 
-  // paymentId 없음
   if (!canPoll) {
     return (
       <main className="min-h-[70vh] grid place-items-center px-4 py-10">
@@ -125,18 +158,16 @@ export default function BillingWaitPage() {
   return (
     <main className="min-h-[70vh] grid place-items-center px-4 py-10">
       <div className="w-full max-w-md">
-        {/* back */}
         <div className="mb-4">
           <button
             onClick={() => router.replace("/billing")}
-            className="text-sm dp-muted hover:text-black dark:hover:text-white transition"
+            className="text-sm dp-muted transition hover:text-black dark:hover:text-white"
           >
             ← 결제 페이지로
           </button>
         </div>
 
         <section className="dp-card">
-          {/* Top */}
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <h1 className="text-lg font-semibold">결제 처리</h1>
@@ -166,7 +197,6 @@ export default function BillingWaitPage() {
             </div>
           </div>
 
-          {/* Countdown */}
           <div className="mt-4 rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
             <div className="flex items-center justify-between">
               <div>
@@ -182,20 +212,15 @@ export default function BillingWaitPage() {
             </div>
           </div>
 
-          {/* Message */}
           <p className="mt-4 text-sm">{message}</p>
 
-          {/* paymentId (collapse) */}
           <details className="mt-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950/40">
             <summary className="cursor-pointer text-xs font-semibold dp-muted">
               paymentId 보기
             </summary>
-            <div className="mt-2 font-mono text-xs break-all">
-              {paymentId}
-            </div>
+            <div className="mt-2 break-all font-mono text-xs">{paymentId}</div>
           </details>
 
-          {/* Actions */}
           <div className="mt-6 flex gap-2">
             <button onClick={() => router.replace("/")} className="dp-btn-primary w-full">
               메인으로

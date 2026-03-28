@@ -6,7 +6,7 @@ export default function LandingPage() {
       {/* Logo */}
       <header className="text-center">
         <h1 className="text-lg font-semibold tracking-tight">
-          DevPathtest
+          DevPath
         </h1>
       </header>
 

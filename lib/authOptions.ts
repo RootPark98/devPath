@@ -1,32 +1,15 @@
 import Google from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-// import { prisma } from "@/lib/prisma";
-
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const nextAuthSecret = process.env.NEXTAUTH_SECRET;
-
-if (!googleClientId) {
-  throw new Error("Missing GOOGLE_CLIENT_ID");
-}
-
-if (!googleClientSecret) {
-  throw new Error("Missing GOOGLE_CLIENT_SECRET");
-}
-
-if (!nextAuthSecret) {
-  throw new Error("Missing NEXTAUTH_SECRET");
-}
-
+import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
-  // adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
 
   providers: [
     Google({
-      clientId: googleClientId, //process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: googleClientSecret,// process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
   session: {

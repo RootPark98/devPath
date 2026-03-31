@@ -1,4 +1,4 @@
-import type { Language, ProjectType } from "./types";
+import type { Language, ProjectType, Domain } from "./types";
 
 // 이 파일은 "고정 데이터(상수)" 전용 파일이다.
 // UI 로직과 분리하면 page.tsx와 form 컴포넌트가 훨씬 깔끔해진다.
@@ -151,3 +151,21 @@ export function getFrameworkOptions(
 export function getLanguageOptions(projectType: ProjectType): readonly Language[] {
   return LANGUAGES_BY_PROJECT_TYPE[projectType];
 }
+
+export const DOMAIN_LABELS: Record<Domain, string> = {
+  auto: "자동 추천",
+  collaboration: "협업 도구",
+  "data-analysis": "데이터 분석",
+  commerce: "커머스",
+  "ai-service": "AI 서비스",
+  education: "교육",
+  healthcare: "헬스케어",
+  "location-based": "위치 기반",
+  "content-platform": "콘텐츠 플랫폼",
+  social: "소셜 서비스",
+  "developer-tools": "개발자 도구",
+  "productivity-automation": "생산성 자동화",
+  finance: "금융/가계부",
+  "log-monitoring": "로그 모니터링",
+  "api-platform": "API 플랫폼",
+};

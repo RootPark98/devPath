@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import {
   isLanguage,
   isLevel,
+  isDomain,
   sanitizeFrameworks,
 } from "@/lib/devpath/server/input";
 import { buildPrompt } from "@/lib/devpath/server/prompt";
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     const raw = await request.json();
 
     // ✅ 입력 검증
-    if (!isLanguage(raw?.language) || !isLevel(raw?.level)) {
+    if (!isLanguage(raw?.language) || !isLevel(raw?.level) || !isDomain(raw?.domain)) {
       return apiErr("INVALID_INPUT", "잘못된 입력값입니다.", 400);
     }
 
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
       projectType: raw.projectType, // 👈 이거 추가 (중요)
       language: raw.language,
       level: raw.level,
+      domain: raw.domain,
       frameworks: sanitizeFrameworks(raw.projectType, raw.language, raw.frameworks),
     };
 

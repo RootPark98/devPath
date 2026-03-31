@@ -58,10 +58,36 @@ export type Language = (typeof LANGUAGES)[number];
 export const LEVELS = ["초급", "중급", "고급"] as const;
 export type Level = (typeof LEVELS)[number];
 
+/**
+ * domain은 optional로 두기보다 "auto"를 포함한 필수값으로 두는 편이 낫다.
+ * - UI 기본값: "auto"
+ * - 서버 분기: domain === "auto" 이면 자동 추천
+ */
+export const DOMAINS = [
+  "auto",
+  "collaboration",
+  "data-analysis",
+  "commerce",
+  "ai-service",
+  "education",
+  "healthcare",
+  "location-based",
+  "content-platform",
+  "social",
+  "developer-tools",
+  "productivity-automation",
+  "finance",
+  "log-monitoring",
+  "api-platform",
+] as const;
+
+export type Domain = (typeof DOMAINS)[number];
+
 export type PlanInput = {
   projectType: ProjectType;
   language: Language;
   level: Level;
+  domain: Domain;
   frameworks: string[];
 };
 
@@ -76,6 +102,7 @@ export type GeneratePlanInput = {
   projectType: ProjectType;
   language: Language;
   level: Level;
+  domain: Domain;
   frameworks: string[];
 };
 

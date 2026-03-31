@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { PlanHistoryItem } from "@/lib/devpath/history";
+import type { PlanHistoryItem } from "@/lib/devpath/types";
 import { readApiResponse } from "@/lib/devpath/client/errors";
 
 type HistoryRow = {

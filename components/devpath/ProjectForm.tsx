@@ -2,19 +2,23 @@
 
 import Link from "next/link";
 import {
+  DOMAINS,
   LEVELS,
   PROJECT_TYPES,
+  type Domain,
   type Language,
   type Level,
   type ProjectType,
 } from "@/lib/devpath/types";
-import { PROJECT_TYPE_LABELS } from "@/lib/devpath/constants";
+import { DOMAIN_LABELS, PROJECT_TYPE_LABELS } from "@/lib/devpath/constants";
 
 export default function ProjectForm(props: {
   projectType: ProjectType;
   language: Language;
   level: Level;
+  domain: Domain;
   languages: readonly Language[];
+  domainOptions?: readonly Domain[];
   frameworkOptions: readonly string[];
   frameworks: string[];
   loading: boolean;
@@ -22,6 +26,7 @@ export default function ProjectForm(props: {
   onChangeProjectType: (next: ProjectType) => void;
   onChangeLanguage: (next: Language) => void;
   onChangeLevel: (next: Level) => void;
+  onChangeDomain: (next: Domain) => void;
   onToggleFramework: (name: string) => void;
   onSubmit: () => void;
 }) {
@@ -29,7 +34,9 @@ export default function ProjectForm(props: {
     projectType,
     language,
     level,
+    domain,
     languages,
+    domainOptions = DOMAINS,
     frameworkOptions,
     frameworks,
     loading,
@@ -37,11 +44,13 @@ export default function ProjectForm(props: {
     onChangeProjectType,
     onChangeLanguage,
     onChangeLevel,
+    onChangeDomain,
     onToggleFramework,
     onSubmit,
   } = props;
 
-  const canSubmit = !loading && !!projectType && !!language && !!level && authenticated;
+  const canSubmit =
+    !loading && !!projectType && !!language && !!level && !!domain && authenticated;
 
   return (
     <section className="dp-card">
@@ -49,7 +58,7 @@ export default function ProjectForm(props: {
         <div className="space-y-1">
           <h2 className="dp-card-title">프로젝트 입력</h2>
           <p className="text-sm dp-muted">
-            프로젝트 유형을 먼저 고르고, 그에 맞는 언어와 프레임워크를 선택하세요.
+            프로젝트 유형, 언어, 난이도, 도메인을 고르면 그에 맞는 실무형 프로젝트 설계를 생성합니다.
           </p>
         </div>
 
@@ -123,6 +132,31 @@ export default function ProjectForm(props: {
               </option>
             ))}
           </select>
+        </Field>
+
+        <Field label="도메인">
+          <select
+            value={domain}
+            onChange={(e) => onChangeDomain(e.target.value as Domain)}
+            disabled={loading}
+            className="
+              w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none
+              border-neutral-200 text-neutral-900
+              focus:ring-2 focus:ring-black/10
+              disabled:opacity-60
+              dark:bg-neutral-950/40 dark:text-neutral-50 dark:border-neutral-800
+            "
+          >
+            {domainOptions.map((item) => (
+              <option key={item} value={item}>
+                {DOMAIN_LABELS[item]}
+              </option>
+            ))}
+          </select>
+
+          <p className="mt-2 text-xs dp-muted">
+            자동 추천을 고르면 입력값에 맞는 도메인을 자동으로 선택합니다.
+          </p>
         </Field>
 
         <Field label="프레임워크/라이브러리">

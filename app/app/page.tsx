@@ -12,17 +12,20 @@ import ExportDropdown from "@/components/devpath/ExportDropdown";
 import { FeedbackSection } from "@/components/devpath/feedback-section";
 
 import type {
+  Domain,
   GeneratedPlan,
   Language,
   Level,
+  PlanHistoryItem,
   PlanInput,
   ProjectType,
 } from "@/lib/devpath/types";
-import type { PlanHistoryItem } from "@/lib/devpath/history";
+import { DOMAINS } from "@/lib/devpath/types";
 import type { DevPathErrorCode } from "@/lib/devpath/api";
 
 import {
   DEFAULT_LANGUAGE_BY_PROJECT_TYPE,
+  DOMAIN_LABELS,
   LANGUAGES_BY_PROJECT_TYPE,
   PROJECT_TYPE_LABELS,
   getFrameworkOptions,
@@ -43,6 +46,7 @@ export default function Home() {
     DEFAULT_LANGUAGE_BY_PROJECT_TYPE.web
   );
   const [level, setLevel] = useState<Level>("초급");
+  const [domain, setDomain] = useState<Domain>("auto");
   const [frameworks, setFrameworks] = useState<string[]>([]);
 
   // UX 상태
@@ -112,6 +116,7 @@ export default function Home() {
         projectType,
         language,
         level,
+        domain,
         frameworks,
       };
 
@@ -141,12 +146,14 @@ export default function Home() {
       projectType: item.input.projectType ?? "web",
       language: item.input.language,
       level: item.input.level,
+      domain: item.input.domain ?? "auto",
       frameworks: item.input.frameworks ?? [],
     };
 
     setProjectType(restoredInput.projectType);
     setLanguage(restoredInput.language);
     setLevel(restoredInput.level);
+    setDomain(restoredInput.domain);
     setFrameworks(restoredInput.frameworks);
 
     setPlan(item.output);
@@ -163,6 +170,7 @@ export default function Home() {
 - 프로젝트 유형: ${PROJECT_TYPE_LABELS[planInput?.projectType ?? projectType]}
 - 언어/스택: ${planInput?.language ?? language}
 - 난이도: ${planInput?.level ?? level}
+- 도메인: ${DOMAIN_LABELS[planInput?.domain ?? domain]}
 - 프레임워크/라이브러리: ${
       (planInput?.frameworks?.length ?? frameworks.length)
         ? (planInput?.frameworks ?? frameworks).join(", ")
@@ -230,6 +238,8 @@ ${plan.readmeDraft}
         projectType={projectType}
         language={language}
         level={level}
+        domain={domain}
+        domainOptions={DOMAINS}
         languages={currentLanguages}
         frameworkOptions={currentFrameworkOptions}
         frameworks={frameworks}
@@ -238,6 +248,7 @@ ${plan.readmeDraft}
         onChangeProjectType={handleProjectTypeChange}
         onChangeLanguage={handleLanguageChange}
         onChangeLevel={setLevel}
+        onChangeDomain={setDomain}
         onToggleFramework={toggleFramework}
         onSubmit={handleSubmit}
       />

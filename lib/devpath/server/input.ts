@@ -2,9 +2,11 @@ import {
   LANGUAGES,
   LEVELS,
   PROJECT_TYPES,
+  DOMAINS,
   type Language,
   type Level,
   type ProjectType,
+  type Domain,
 } from "../types";
 import {
   FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE,
@@ -29,6 +31,10 @@ export function isLanguage(x: any): x is Language {
 
 export function isLevel(x: any): x is Level {
   return LEVELS.includes(x);
+}
+
+export function isDomain(value: unknown): value is Domain {
+  return typeof value === "string" && DOMAINS.includes(value as Domain);
 }
 
 export function isLanguageAllowedForProjectType(

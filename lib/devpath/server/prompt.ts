@@ -1,247 +1,330 @@
-import type { GeneratePlanInput } from "@/lib/devpath/types";
-import { PROJECT_TYPE_LABELS } from "@/lib/devpath/constants";
+import type { GeneratePlanInput, Domain, Level, ProjectType } from "@/lib/devpath/types";
+import { DOMAIN_LABELS, PROJECT_TYPE_LABELS } from "@/lib/devpath/constants";
 
-/**
- * 프롬프트 생성 레이어
- * - route.ts에서 긴 프롬프트 문자열을 떼어내서 가독성을 높임
- * - 나중에 프롬프트 A/B 테스트나 버전 관리도 쉬워짐
- */
-
-export function buildPrompt(body: GeneratePlanInput): string {
-  const frameworksLine =
-    body.frameworks.length > 0 ? body.frameworks.join(", ") : "선택 없음";
-
-  const projectTypeLabel = PROJECT_TYPE_LABELS[body.projectType];
+function getDomainRule(domain: Domain): string {
+  if (domain === "auto") {
+    return `
+[도메인 규칙]
+- 도메인은 랜덤으로 고르지 않는다.
+- 프로젝트 유형, 언어, 난이도, 선택 프레임워크에 가장 잘 맞는 도메인 하나를 스스로 선택한다.
+- 단, 흔한 CRUD 관리자 페이지처럼 보이지 않도록 실제 사용 맥락이 있는 시나리오를 선택한다.
+`.trim();
+  }
 
   return `
-너는 개발자 취준생을 위한 전문 포트폴리오 프로젝트 설계자다.
-단순한 토이 프로젝트가 아니라, 실제 실무에서 겪는 고민(데이터 흐름, 상태 관리, 예외 처리, 성능/확장성, 유지보수)을 드러낼 수 있는 프로젝트를 설계한다.
+[도메인 규칙]
+- 반드시 ${DOMAIN_LABELS[domain]} 도메인 안에서만 프로젝트를 설계한다.
+- 다른 도메인으로 벗어나지 않는다.
+- 같은 도메인 안에서도 흔한 CRUD 예제가 아니라, 실제 사용 맥락이 드러나는 구체적인 시나리오를 선택한다.
+`.trim();
+}
 
-사용자 입력:
-- 프로젝트 유형: ${projectTypeLabel}
-- 언어/스택: ${body.language}
-- 난이도: ${body.level}
-- 프레임워크/라이브러리(선택): ${frameworksLine}
+function getProjectTypeRule(projectType: ProjectType): string {
+  switch (projectType) {
+    case "web":
+      return `
+[프로젝트 유형 규칙: Web Service]
+- 브라우저 기반 사용자 UI가 반드시 존재해야 한다.
+- userFlow는 웹 화면 기준의 실제 사용자 행동 흐름이어야 한다.
+- coreApiSpecs는 REST API 형식으로 작성한다.
+- recommendedStack.frontend에는 웹 UI 기술을 작성한다.
+- recommendedStack.backend에는 서버 기술을 작성한다.
+- database는 실제 서비스 데이터 저장에 적합한 기술 하나를 작성한다.
+- buildSteps와 readmeDraft의 배포 방법은 웹 서비스 기준으로 작성한다.
+`.trim();
 
-프로젝트 생성 방식(중요):
-- 먼저 "현실적인 문제 상황"을 하나 설정한다.
-- 그 문제를 해결하기 위한 서비스 또는 도구 형태의 프로젝트를 설계한다.
-- 단순 기능 구현이 아니라 문제 해결 중심 프로젝트여야 한다.
+    case "mobile":
+      return `
+[프로젝트 유형 규칙: Mobile App]
+- 모바일 앱 화면 중심의 실제 사용 흐름이어야 한다.
+- 오프라인 대응, 로컬 캐싱, 푸시/알림, 백그라운드 동기화 중 최소 1개 이상 반드시 반영한다.
+- coreApiSpecs는 앱이 호출하는 인터페이스 형식으로 작성한다.
+- recommendedStack.frontend에는 앱 UI 기술을 작성한다.
+- recommendedStack.backend에는 서버 기술을 작성한다.
+- database는 모바일 앱 + 서버 구조에서 현실적으로 사용할 수 있는 기술 하나를 작성한다.
+- 배포 방법은 Expo/EAS, TestFlight, Play Console, App Store Connect 같은 앱 배포 흐름을 반영한다.
+- Vercel만으로 끝나는 배포 설명은 금지한다.
+`.trim();
 
-[생성 순서 강제 규칙 - 매우 중요]
+    case "tool":
+      return `
+[프로젝트 유형 규칙: Developer Tool]
+- 일반 소비자용 서비스처럼 꾸미지 않는다.
+- 인터페이스는 CLI, SDK, VSCode Extension, GitHub App, 챗옵스 봇 중 최소 1개 이상으로 명확해야 한다.
+- recommendedStack.frontend에는 실제 인터페이스를 작성한다. 예: "CLI Interface", "VSCode Extension UI"
+- recommendedStack.backend에는 실행 런타임 또는 처리 계층을 작성한다. 예: "Node.js Runtime", "Python Worker"
+- database는 설정, 캐시, 실행 기록, 결과 메타데이터 등을 저장하는 실제 저장소 기술 하나를 작성한다.
+- REST API가 없으면 coreApiSpecs는 아래 형식으로 작성한다:
+  - method: "COMMAND"
+  - path: 실제 명령어 또는 인터페이스 시그니처
+- userFlow는 입력 → 실행 → 처리 → 결과 확인 흐름이 분명해야 한다.
+`.trim();
+  }
+}
 
-아래 순서를 반드시 지켜서 프로젝트를 설계한다:
-
-1. userFlow를 먼저 작성한다.
-2. userFlow를 기반으로 필요한 데이터(entity)를 정의한다.
-3. 그 데이터를 저장하기 위한 databaseSchema를 설계한다.
-4. databaseSchema를 기반으로 필요한 API(coreApiSpecs)를 결정한다. (서버 기반인 경우에만)
-5. 마지막으로 recommendedStack을 선택한다.
-
-금지:
-- databaseSchema를 먼저 생성하는 것
-- userFlow와 무관한 generic 엔티티(Project, Activity 등)를 추가하는 것
-
-[아키텍처 선택 규칙 - 매우 중요]
-
-프로젝트 설계 시작 전에 반드시 아래 중 하나를 먼저 선택한다:
-
-1. 로컬 기반 (온디바이스)
-- AsyncStorage 또는 SQLite 사용
-- Backend와 API를 생성하지 않는다.
-
-2. 서버 기반
-- Backend + Database + API를 반드시 포함한다.
-- AsyncStorage는 캐싱 용도로만 제한적으로 사용한다.
-
-- backend에는 구체적인 기술 이름만 작성한다. (예: Node.js, Firebase 등)
-- "기본", "일반적인" 등의 모호한 표현 금지
-
-금지:
-- 두 방식을 혼합하는 것 (AsyncStorage + API + SQLite 동시 사용 금지)
-
-[프로젝트 유형 강제 규칙 - 매우 중요]
-- 선택된 프로젝트 유형(${projectTypeLabel})에 맞는 결과만 생성한다.
-- 프로젝트 유형과 맞지 않는 구조를 섞지 않는다.
-
-1. Web Service
-- 사용자 UI가 반드시 존재해야 한다.
-- frontend + backend + database 구조를 기본으로 한다.
-- userFlow는 브라우저 또는 웹 화면 기준의 사용자 행동 흐름이어야 한다.
-- coreApiSpecs는 REST API 중심으로 작성한다.
-
-2. Mobile App
-- 모바일 UX를 중심으로 설계한다.
-- 앱 화면 흐름, 상태 유지, 알림, 오프라인 대응 중 최소 1개 이상 고려한다.
-- userFlow는 앱 사용 흐름 기준으로 작성한다.
-- coreApiSpecs는 앱이 사용하는 API 중심으로 작성한다.
-
-3. Developer Tool
-- CLI, 라이브러리, SDK, 내부 자동화 도구 형태를 허용한다.
-- frontend는 없을 수도 있으나, 반드시 명확한 인터페이스가 있어야 한다.
-- userFlow는 명령 실행, 입력, 처리, 결과 확인 흐름으로 작성할 수 있다.
-- coreApiSpecs는 REST API가 아니라 command/interface spec 형태도 허용한다.
-
-[추가 규칙 - 프로젝트 재미/참신성 (매우 중요)]
-- 흔한 주제(로그 분석, 단순 관리 도구, CRUD 관리 시스템)는 피한다.
-- 사용자가 “이거 재밌다” 또는 “이건 포트폴리오로 눈에 띄겠다”라고 느낄 수 있어야 한다.
-- 반드시 아래 중 최소 1개 이상 포함한다:
-  - 사용자 행동 기반 인터랙션 (추천, 피드백, 개인화 등)
-  - 실제 생활 문제를 해결하는 시나리오
-  - 데이터 흐름이 눈에 보이는 구조 (대시보드, 시각화 등)
-  - 약한 수준의 “서비스 느낌” (단순 도구가 아니라 서비스처럼 보일 것)
-- 단순한 CLI 유틸리티나 기술 데모 수준으로 끝나는 프로젝트는 생성하지 않는다.
-
-프로젝트 도메인 선택 규칙:
-
-[중요: 프로젝트 생성 알고리즘]
-1. 아래 14가지 도메인 중 하나를 '랜덤'하게 선택한다:
-(협업 도구, 데이터 분석, 커머스, AI 서비스, 교육, 헬스케어, 위치 기반, 콘텐츠 플랫폼, 소셜 서비스, 개발자 도구, 생산성 자동화, 금융/가계부, 로그 모니터링, API 플랫폼)
-2. 선택한 도메인 내에서 '기존에 흔하지 않은' 독특한 서비스 시나리오를 구상한다.
-3. 반드시 ${body.language}와 ${body.level}에 최적화된 기술적 난제를 설정한다.
-
-금지 규칙:
-- Todo 리스트
-- 단순 게시판
-- 메모 앱
-- 기본 CRUD 예제
-- 블로그 클론
-
-위와 같은 단순 프로젝트는 생성하지 않는다.
-
----
-
-[난이도 강제 규칙 - 매우 중요]
-
-난이도 조건은 다른 모든 규칙보다 우선한다.
-생성되는 프로젝트는 반드시 선택된 난이도(${body.level})에 맞아야 한다.
-
----
-
-[초급]
-
+function getDifficultyRule(level: Level): string {
+  switch (level) {
+    case "초급":
+      return `
+[난이도 규칙: 초급]
 목표:
-- 기본적인 서비스/도구 구조 이해
-- 단일 구조 기반의 안정적인 흐름 설계
-
-금지:
-- 실시간 처리 (WebSocket, 스트리밍, 채팅 등)
-- 대용량 트래픽 처리, 분산 시스템
-- 메시지 큐(Celery, Kafka 등)
-- 마이크로서비스 구조
-- 복잡한 외부 연동 (결제, OAuth 복잡 흐름 등)
+- 단일 애플리케이션 구조 안에서 핵심 데이터 흐름을 설명할 수 있어야 한다.
+- 구조는 단순하지만 실제 서비스처럼 보여야 한다.
 
 허용:
-- REST API 기반 단일 서버
-- 단순 비동기 처리 (요청 → 처리 → 응답)
-- 기본적인 상태 관리
-- 간단한 페이징, 필터링
+- 단일 서버
+- 기본 인증
+- 기본 CRUD + 검색/필터링
+- 간단한 상태 관리
+- 기본적인 예외 처리
 
-technicalChallenge는 반드시 아래 범위에서 선택:
-- 데이터 모델링 설계
-- API 응답 구조 설계
-- 상태 관리 구조
-- 기본적인 에러 처리
+금지:
+- WebSocket, 스트리밍, 채팅
+- 메시지 큐, 이벤트 버스
+- 마이크로서비스
+- 복잡한 외부 연동 2개 이상
+- 대규모 분산 시스템
 
----
+technicalChallenge는 아래 중 하나를 중심으로 작성한다:
+- 데이터 모델링
+- 상태 관리
+- API 응답 구조
+- 기본 에러 처리
+`.trim();
 
-[중급]
-
+    case "중급":
+      return `
+[난이도 규칙: 중급]
 목표:
-- 실제 서비스에서 발생하는 성능/구조 문제 일부 해결
+- 실제 서비스에서 자주 나오는 구조/성능 문제 일부를 해결할 수 있어야 한다.
 
-필수 (최소 1~2개 포함):
-- 상태 관리 라이브러리 (React Query, Zustand 등)
-- 데이터 캐싱 전략
-- 데이터 페이징 / 무한 스크롤
-- API 모킹 또는 테스트
-- 성능 최적화 (렌더링, 쿼리 등)
-
-허용:
-- 간단한 비동기 작업 처리
-- 외부 API 연동 (단순 수준)
+필수:
+- 아래 중 최소 2개 이상 반드시 포함한다.
+  - 캐싱 전략
+  - 상태 관리 라이브러리
+  - 페이지네이션 또는 무한 스크롤
+  - 낙관적 업데이트 또는 재시도 처리
+  - API 모킹 또는 테스트
+  - 렌더링/쿼리 성능 최적화
 
 금지:
 - 마이크로서비스
-- 대규모 분산 시스템
+- 과도한 인프라 설계
+- 복잡한 분산 아키텍처
 
-technicalChallenge는 반드시 다음 중 하나 이상 포함:
+technicalChallenge는 아래 중 하나 이상을 반드시 포함한다:
 - 캐싱 전략
 - 상태 관리 구조
 - API 성능 개선
 - 데이터 흐름 최적화
+`.trim();
 
----
-
-[고급]
-
+    case "고급":
+      return `
+[난이도 규칙: 고급]
 목표:
-- 실무 수준의 시스템 설계 능력 드러내기
+- 실무 수준의 설계 판단과 운영 고려가 드러나야 한다.
 
-필수 (최소 2개 이상 포함):
-- 인증/인가 (JWT 또는 OAuth)
-- CI/CD 또는 배포 전략
-- 성능 모니터링
-- 로그 수집 및 분석
-- 대용량 데이터 처리 전략
+필수:
+- 아래 중 최소 2개 이상 반드시 포함한다.
+  - 인증/인가
+  - 배포 자동화 또는 CI/CD
+  - 로그 수집 또는 모니터링
+  - 성능 병목 분석
+  - 대용량 데이터 처리 전략
+  - 장애 대응 또는 재시도 전략
 
 허용:
-- 비동기 큐 (Celery 등)
-- 실시간 처리 (WebSocket 등)
-- 마이크로서비스 구조 (선택)
+- 실시간 처리
+- 비동기 작업 큐
+- 이벤트 기반 처리
 
-technicalChallenge는 반드시 아래 수준:
+주의:
+- 고급이라고 해서 무조건 거대한 시스템으로 만들지 않는다.
+- 학습 가능한 범위 안에서 현실적인 복잡도를 유지한다.
+
+technicalChallenge는 아래 수준으로 작성한다:
 - 동시성 제어
 - 확장성 설계
 - 장애 대응 전략
 - 성능 병목 해결
+`.trim();
+  }
+}
 
----
+export function buildPrompt(body: GeneratePlanInput): string {
+  const frameworksLine =
+    body.frameworks.length > 0
+      ? body.frameworks.join(", ")
+      : "선택 없음";
 
-[검증 규칙 - 매우 중요]
+  const projectTypeLabel = PROJECT_TYPE_LABELS[body.projectType];
+  const domainLabel = DOMAIN_LABELS[body.domain];
 
-생성된 결과가 선택된 난이도보다 어렵다고 판단되면,
-반드시 난이도를 낮춰 다시 설계한다.
+  return `
+너는 개발자 취준생을 위한 실무형 포트폴리오 프로젝트 설계자다.
 
----
+목표:
+- 단순 토이 프로젝트가 아니라, 실제 면접에서 설명 가능한 실무형 프로젝트 설계를 만든다.
+- 결과물은 반드시 하나의 일관된 시스템이어야 한다.
+- 데이터 흐름, 상태 변화, 예외 처리, 유지보수 포인트가 자연스럽게 드러나야 한다.
+- 출력은 오직 JSON.parse() 가능한 순수 JSON 객체 하나만 반환한다.
 
-설계 일관성 규칙:
-- userFlow는 프로젝트의 핵심 사용자 여정이다.
-- databaseSchema는 userFlow에서 발생하는 데이터를 저장할 수 있도록 설계해야 한다.
-- coreApiSpecs는 userFlow 단계에서 실제로 필요한 인터페이스를 중심으로 작성해야 한다.
-- mvpFeatures는 userFlow를 실제 기능으로 구현할 수 있도록 구성해야 한다.
-- userFlow에 없는 행동을 갑자기 API나 기능 목록에 추가하지 않는다.
-- 전체 설계는 하나의 일관된 시스템처럼 동작해야 한다.
-- 서로 충돌되는 기술 선택을 포함하지 않는다.
+[사용자 입력]
+- 프로젝트 유형: ${projectTypeLabel}
+- 언어/스택: ${body.language}
+- 난이도: ${body.level}
+- 도메인: ${domainLabel}
+- 선택 프레임워크/라이브러리: ${frameworksLine}
 
----
+[최상위 원칙]
+1. 단순 게시판, 메모 앱, Todo, 블로그 클론, 기본 CRUD 관리자 페이지를 만들지 않는다.
+2. userFlow에 없는 기능, 엔티티, API를 추가하지 않는다.
+3. generic 엔티티명(Project, Activity, Item, Data, Result, Entity)을 단독으로 사용하지 않는다.
+4. 모든 기술 선택은 구체적이어야 한다. "기본 백엔드", "일반적인 라이브러리", "적절한 DB" 같은 표현은 금지한다.
+5. 모든 문자열 값은 한국어로 작성한다. 단, 기술명과 고유명사는 영어 유지 가능하다.
+6. AI, 추천, 분석, 생성 같은 표현을 쓰면 반드시 그에 맞는 외부 AI API 또는 명확한 규칙 기반 처리 로직이 설계에 반영되어야 한다.
+7. 결과는 재미보다 완성도가 우선이지만, 동시에 포트폴리오로 눈에 띄는 구체적인 서비스 시나리오여야 한다.
+8. recommendedStack.backend, recommendedStack.database, coreApiSpecs는 항상 채운다.
+9. coreApiSpecs는 비워두지 않는다. REST API가 아닌 경우에도 command/interface spec으로 작성한다.
+10. "N/A", "없음", "미정", "기본 스택" 같은 placeholder 표현은 금지한다.
 
-[recommendedStack 일관성 규칙 (매우 중요)]
+${getDomainRule(body.domain)}
 
-- Backend가 존재하면 반드시 coreApiSpecs가 존재해야 한다.
-- Backend가 없으면 coreApiSpecs를 생성하지 않는다.
-- database 선택은 저장 방식과 반드시 일치해야 한다.
-- recommendedStack, databaseSchema, coreApiSpecs는 하나의 시스템처럼 일관되어야 한다.
-- "N/A" 사용 금지
+${getProjectTypeRule(body.projectType)}
 
----
+${getDifficultyRule(body.level)}
 
-[databaseSchema 작성 규칙 (매우 중요)]
+[설계 순서 - 내부적으로만 따를 것]
+1. 현실적인 사용자 문제를 하나 정한다.
+2. 그 문제를 해결하는 서비스/앱/도구 시나리오를 정한다.
+3. userFlow를 4~6단계로 쓴다.
+4. userFlow에서 발생하는 데이터를 기준으로 databaseSchema를 만든다.
+5. userFlow를 수행하기 위해 필요한 인터페이스를 coreApiSpecs로 정의한다.
+6. 마지막으로 recommendedStack, mvpFeatures, buildSteps, readmeDraft, interviewPoints를 완성한다.
 
-- 모든 엔티티는 userFlow에서 등장하는 개념을 기반으로 생성한다.
-- userFlow에 없는 generic 엔티티(Project, Activity 등)를 생성하지 않는다.
-- 실제 서비스 도메인 기반으로 설계한다.
-- databaseSchema는 반드시 userFlow 각 단계에서 필요한 데이터를 설명할 수 있어야 한다.
+[공통 설계 규칙]
+- projectTitle은 짧지만 구체적인 서비스명이어야 한다.
+- oneLiner는 "누가 무엇을 왜 쓰는지"가 드러나는 한 문장이어야 한다.
+- technicalChallenge는 실제 구현 중 부딪히는 핵심 기술 난제와 트레이드오프를 1~2문장으로 구체적으로 써야 한다.
+- userFlow는 실제 사용 순서여야 하며 구현 항목 목록처럼 쓰면 안 된다.
+- databaseSchema는 userFlow 단계에서 필요한 데이터만 담아야 한다.
+- coreApiSpecs는 userFlow를 수행하기 위해 실제 호출되거나 실행되는 인터페이스만 담아야 한다.
+- mvpFeatures는 userFlow를 실제 기능으로 바꾼 목록이어야 한다.
+- buildSteps는 실제 개발 순서여야 한다.
+- readmeDraft는 buildSteps의 마지막 배포 전략과 일치해야 한다.
+- interviewPoints는 "왜 이렇게 설계했는가"를 설명할 수 있는 질문이어야 한다.
+- 전체 설계는 하나의 일관된 제품처럼 보여야 한다.
 
----
+[필드별 출력 규칙]
 
-Mobile App 배포 규칙:
-- Vercel 사용 금지
-- Expo, EAS, Play Store, App Store 기반 배포만 허용
+1. projectTitle
+- 짧지만 구체적인 프로젝트명으로 작성한다.
+- 너무 일반적인 이름 금지. 예: "작업 관리 플랫폼", "데이터 시스템"
 
----
+2. oneLiner
+- 한 문장으로 작성한다.
+- 사용자, 문제, 핵심 가치가 드러나야 한다.
+- 추상적인 소개 금지. 예: "효율적인 서비스를 제공하는 플랫폼"
 
-아래 스키마에 맞는 결과를 생성하라:
+3. technicalChallenge
+- 1~2문장으로 작성한다.
+- 실제 구현 중 부딪히는 핵심 기술 난제와 트레이드오프를 드러낸다.
+- 너무 넓은 표현 금지. 예: "성능 최적화가 중요하다"
+- 아래 중 최소 1개 이상 자연스럽게 드러나야 한다:
+  - 실무 환경을 가정한 기술적 제약 사항
+  - 실제 운영 중 발생할 수 있는 트러블슈팅 사례
+
+4. userFlow
+- 반드시 4~6개 문자열 배열로 작성한다.
+- 각 단계는 실제 사용 흐름의 짧고 명확한 한 문장이다.
+- 구현 작업, 기술 선택, DB 설계 내용을 쓰지 않는다.
+- 잘못된 예:
+  - "JWT 인증 구현"
+  - "REST API 개발"
+  - "DB 모델링"
+
+5. recommendedStack
+- 항상 아래 형태를 유지한다.
+  - frontend: 1개 이상
+  - backend: 1개 이상
+  - database: 정확히 1개
+  - libraries: 2개 이상
+- 모두 구체적인 기술명만 사용한다.
+- "N/A", "없음", "기본 스택" 금지
+- 선택 프레임워크가 있으면 가능한 한 자연스럽게 반영한다.
+- Developer Tool에서는 frontend에 실제 인터페이스를 적는다. 예: "CLI Interface", "VSCode Extension UI"
+
+6. databaseSchema
+- 반드시 3~5개 엔티티 배열로 작성한다.
+- 각 엔티티는 반드시 아래 형태를 따른다:
+  - entity: 도메인 기반 이름
+  - fields: 3개 이상
+  - description: 해당 엔티티가 userFlow에서 왜 필요한지 설명
+- entity 이름은 "Project", "Activity", "Item", "Data", "Entity", "Result" 단독 사용 금지
+- userFlow에 등장하지 않는 데이터는 만들지 않는다.
+
+7. coreApiSpecs
+- 반드시 3~6개 배열로 작성한다.
+- Web/Mobile에서는 REST API 중심으로 작성한다.
+  - method: GET, POST, PATCH, DELETE 중 하나
+  - path: /api/... 형태
+- Developer Tool에서 REST가 없으면 아래 방식 허용:
+  - method: COMMAND
+  - path: 실제 명령어 또는 인터페이스 시그니처
+- description은 userFlow의 어떤 행동을 지원하는지 드러나야 한다.
+- 같은 method + path 조합을 중복해서 쓰지 않는다.
+
+8. mvpFeatures
+- 반드시 5~7개 문자열 배열로 작성한다.
+- 실제 사용 기능 중심으로 작성한다.
+- "로그인", "CRUD", "대시보드"처럼 너무 뭉뚱그린 표현만 나열하지 않는다.
+
+9. buildSteps
+- 반드시 6~8개 문자열 배열로 작성한다.
+- 실제 개발 순서대로 작성한다.
+- 마지막 단계는 반드시 배포 또는 운영 고려 단계여야 한다.
+- 선택된 난이도에 맞는 현실적인 배포 전략을 포함한다.
+- Mobile App의 배포 단계에는 Expo/EAS, TestFlight, Play Console, App Store Connect 중 최소 1개 이상이 들어가야 한다.
+- 고급 난이도라면 마지막 단계에 CI/CD, 로그, 모니터링 중 최소 1개 이상이 반영되어야 한다.
+
+10. readmeDraft
+- 문자열 하나로 작성한다.
+- 실제 README 초안처럼 Markdown 형식으로 작성한다.
+- 반드시 아래 섹션을 포함한다:
+  - # 프로젝트 개요
+  - ## 주요 기능
+  - ## 기술 스택
+  - ## 실행 방법
+  - ## 배포 방법
+  - ## 폴더 구조
+  - ## 개선 아이디어
+- "## 폴더 구조" 섹션에는 반드시 트리 구조 코드블록을 포함한다.
+- 코드블록 언어는 text 또는 bash를 사용한다.
+- 트리는 최소 8줄 이상 작성하고, \`├──\`, \`└──\`, \`│\` 문자를 사용한다.
+- readmeDraft의 "배포 방법"은 buildSteps의 마지막 단계와 일치해야 한다.
+- README는 너무 길게 늘어놓지 말고, 바로 복붙 가능한 실용적인 초안으로 작성한다.
+
+11. interviewPoints
+- 반드시 4~6개 문자열 배열로 작성한다.
+- 면접에서 실제로 받을 만한 설계 질문이어야 한다.
+- "왜 이 기술을 선택했는가?" 같은 너무 포괄적인 질문만 반복하지 않는다.
+- 트레이드오프, 데이터 흐름, 예외 처리, 확장성 중 최소 2개 이상이 자연스럽게 드러나야 한다.
+
+[자기 점검 - 출력에는 포함하지 말 것]
+- userFlow는 4~6개인가?
+- databaseSchema는 3~5개인가?
+- coreApiSpecs는 3~6개인가?
+- mvpFeatures는 5~7개인가?
+- buildSteps는 6~8개인가?
+- interviewPoints는 4~6개인가?
+- 마지막 buildSteps와 readmeDraft의 배포 방법이 일치하는가?
+- generic 엔티티가 없는가?
+- userFlow와 무관한 기능/API/엔티티가 없는가?
+- 프로젝트 유형과 난이도가 입력과 일치하는가?
+- 모든 값이 비어 있지 않은가?
+
+아래 스키마를 정확히 지켜라:
 
 {
   "projectTitle": "string",
@@ -274,123 +357,11 @@ Mobile App 배포 규칙:
   "interviewPoints": ["string"]
 }
 
----
-
-userFlow 작성 규칙 (매우 중요):
-- 4~6개의 단계로 작성한다.
-- "사용자 행동 흐름"을 기준으로 작성한다.
-- 기능 목록이 아니라 실제 서비스 또는 도구 사용 시나리오여야 한다.
-- 각 단계는 짧고 명확한 한 문장으로 작성한다.
-- 단계는 실제 사용 순서대로 작성한다.
-
-좋은 예:
-"userFlow": [
-"사용자가 회원가입 후 로그인한다",
-"사용자가 새 프로젝트를 생성한다",
-"사용자가 데이터를 입력하거나 업로드한다",
-"사용자가 분석 실행을 요청한다",
-"시스템이 분석 결과를 대시보드로 제공한다"
-]
-
-잘못된 예:
-"userFlow": [
-"JWT 인증 구현",
-"REST API 개발",
-"DB 모델링",
-"React 상태 관리 구현"
-]
-
-Developer Tool 예시:
-"userFlow": [
-"사용자가 명령어로 입력 파일 경로를 전달한다",
-"사용자가 실행 옵션을 선택한다",
-"시스템이 입력 데이터를 처리한다",
-"사용자가 콘솔 또는 출력 파일에서 결과를 확인한다"
-]
-
----
-
-buildSteps 작성 규칙 (매우 중요):
-
-- 단계는 실제 개발 흐름 순서대로 작성한다.
-- 최소 6단계 이상 작성한다.
-- 마지막 단계는 반드시 "배포 및 운영 고려" 단계여야 한다.
-
-배포 단계 규칙:
-- 난이도(${body.level})에 맞는 현실적인 배포 전략을 포함한다.
-- 마지막 배포 단계는 readmeDraft에 그대로 반영될 수 있도록 구체적으로 작성한다.
-
-[초급]
-- Vercel, Render, Railway 등 간단한 PaaS 기반 배포를 사용한다.
-- 환경 변수 설정, 간단한 배포 흐름 정도만 포함한다.
-
-[중급]
-- Docker 기반 배포 또는 간단한 클라우드 환경(AWS, GCP 등)을 포함한다.
-- 빌드/배포 흐름을 간단히 설명한다.
-
-[고급]ㄴ
-- CI/CD(GitHub Actions 등), 모니터링, 로그 확인 중 최소 1개 이상 포함한다.
-- 실제 운영을 고려한 배포 흐름을 포함한다.
-
-- 과도한 인프라 설계는 금지한다.
-- "학습 가능한 수준의 현실적인 배포"를 목표로 한다.
-- 마지막 배포 단계는 readmeDraft에 그대로 반영될 수 있도록 구체적으로 작성한다.
-
----
-
-출력 규칙(매우 중요):
-- 당신의 응답은 오직 JSON.parse()가 가능한 순수 JSON 문자열이어야 합니다.
-- 어떤 서론이나 결론, 인사말, 추가 텍스트를 절대 포함하지 마십시오.
-- 마크다운 코드 펜스(\`\`\`json 등), 설명 문장, 추가 텍스트를 절대 금지한다.
-- JSON 전체 출력에서는 절대로 코드블록(\`\`\`)을 사용하지 않는다.
-- 배열로 감싸지 말 것.
-
-출력 언어 규칙:
-- 모든 문자열 값은 반드시 한국어로 작성한다.
-- 기술 용어는 영어 유지 가능
-
----
-
-중요:
-- recommendedStack의 frontend, backend, database, libraries는 절대 "N/A"로 작성하지 않는다.
-- Web Service, Mobile App에서는 frontend가 반드시 존재해야 한다.
-- Developer Tool에서는 frontend에 "CLI Interface", "Terminal UI", "SDK Interface" 등 실제 인터페이스를 명시한다.
-- database는 반드시 하나 포함한다 (SQLite 등 경량 DB 허용)
-- AI, 맞춤형 생성, 자동 추천, 분석 생성과 같은 표현을 사용하는 경우, 반드시 외부 AI API 또는 명확한 모델 기반 로직을 포함해야 한다.
-- 그렇지 않으면 제목과 oneLiner를 규칙 기반 서비스 수준에 맞게 낮춰 작성한다.
-
-또한 아래 내용을 최소 1개 이상 반드시 포함한다:
-- 실무 환경을 가정한 기술적 제약 사항
-- 실제 운영 중 발생할 수 있는 트러블슈팅 사례
-
-readmeDraft 작성 규칙(매우 중요):
-
-다음 항목을 반드시 포함한다:
-
-# 개요
-## 주요 기능
-## 기술 스택
-## 실행 방법
-## 배포 방법
-## 폴더 구조
-## 개선 아이디어
-
-## 배포 방법 규칙:
-- 난이도에 맞는 간단한 배포 방법을 설명한다.
-- 실제로 따라할 수 있는 수준으로 작성한다.
-- 과도한 인프라 설명은 금지한다.
-
-## 폴더 구조 규칙
-- 반드시 트리 구조 코드블록을 사용한다.
-- 코드블록 언어는 bash 또는 text를 사용한다.
-- 최소 8줄 이상의 트리 구조를 작성한다.
-- ├── └── │ 문자를 사용한다.
-- 각 주요 폴더 옆에 역할 설명 주석을 추가한다.
-
-readmeDraft 일관성 규칙 (매우 중요):
-
-- "배포 방법" 섹션은 buildSteps의 마지막 단계(배포 단계)를 기반으로 작성해야 한다.
-- buildSteps에 없는 배포 방식이나 기술을 새로 추가하지 않는다.
-- buildSteps의 배포 전략을 요약/정리하는 형태로 작성한다.
+[출력 규칙]
+- JSON 객체 하나만 출력한다.
+- 배열 wrapper를 사용하지 않는다.
+- 마크다운 코드펜스를 절대 쓰지 않는다.
+- 서론, 결론, 설명문, 사과문, 주석을 절대 추가하지 않는다.
+- JSON.parse() 가능한 문자열만 출력한다.
 `.trim();
 }

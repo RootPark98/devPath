@@ -304,9 +304,13 @@ ${getDifficultyRule(body.level)}
 [정합성 규칙]
 - userFlow에 인증 단계가 없으면 로그인/회원가입 API를 coreApiSpecs에 넣지 않는다.
 - userFlow에 없는 행동을 mvpFeatures나 coreApiSpecs에 새로 추가하지 않는다.
+- userFlow에 등장한 모든 핵심 행동은 databaseSchema, coreApiSpecs, mvpFeatures 중 적어도 하나 이상에 반영되어야 한다.
+- mvpFeatures에 있는 기능은 반드시 userFlow의 단계와 연결되어야 한다.
 - databaseSchema의 각 엔티티는 userFlow의 특정 단계와 연결되어야 한다.
 - buildSteps의 마지막 배포 전략과 readmeDraft의 배포 방법은 같은 기술/플랫폼이어야 한다.
+- buildSteps에는 userFlow 또는 mvpFeatures에 없는 기능 구현 단계를 추가하지 않는다.
 - projectTitle, oneLiner, technicalChallenge, userFlow, mvpFeatures가 모두 같은 서비스를 설명해야 한다.
+- interviewPoints는 실제로 설계된 기능과 구조만을 기반으로 작성한다.
 
 [필드별 출력 규칙]
 
@@ -326,6 +330,9 @@ ${getDifficultyRule(body.level)}
 - 아래 중 최소 1개 이상 자연스럽게 드러나야 한다:
   - 실무 환경을 가정한 기술적 제약 사항
   - 실제 운영 중 발생할 수 있는 트러블슈팅 사례
+- technicalChallenge는 현재 설계에 실제로 포함된 기능과 기술만 기준으로 작성한다.
+- 미래 확장 계획, 장기적인 플랫폼 연동, 추상적인 확장성 일반론을 중심으로 쓰지 않는다.
+- 데이터 모델, 권한 분기, 상태 갱신, 응답 구조 중 하나를 구체적으로 언급한다.
 
 4. userFlow
 - 반드시 4~6개 문자열 배열로 작성한다.

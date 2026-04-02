@@ -302,15 +302,20 @@ ${getDifficultyRule(body.level)}
 6. 마지막으로 recommendedStack, mvpFeatures, buildSteps, readmeDraft, interviewPoints를 완성한다.
 
 [정합성 규칙]
+- 양면 마켓플레이스(이용자/제공자)가 포함된 서비스라면 userFlow에서 각 단계의 주어를 명확히 적는다.
+- 예약자 흐름과 제공자 흐름을 섞을 경우, 실제 선행 조건이 충족되는 순서로만 작성한다.
+- userFlow에 포함된 역할 수는 최대 2개까지만 허용한다.
 - userFlow에 인증 단계가 없으면 로그인/회원가입 API를 coreApiSpecs에 넣지 않는다.
 - userFlow에 없는 행동을 mvpFeatures나 coreApiSpecs에 새로 추가하지 않는다.
-- userFlow에 등장한 모든 핵심 행동은 databaseSchema, coreApiSpecs, mvpFeatures 중 적어도 하나 이상에 반영되어야 한다.
+- userFlow에 등장한 핵심 행동(예: 알림, 리뷰, 수익 관리)은 databaseSchema, coreApiSpecs, mvpFeatures 중 적어도 2개 이상에 반드시 반영되어야 한다.
+- 반영하지 못하는 행동은 userFlow에서 제거한다.
 - mvpFeatures에 있는 기능은 반드시 userFlow의 단계와 연결되어야 한다.
 - databaseSchema의 각 엔티티는 userFlow의 특정 단계와 연결되어야 한다.
 - buildSteps의 마지막 배포 전략과 readmeDraft의 배포 방법은 같은 기술/플랫폼이어야 한다.
 - buildSteps에는 userFlow 또는 mvpFeatures에 없는 기능 구현 단계를 추가하지 않는다.
 - projectTitle, oneLiner, technicalChallenge, userFlow, mvpFeatures가 모두 같은 서비스를 설명해야 한다.
 - interviewPoints는 실제로 설계된 기능과 구조만을 기반으로 작성한다.
+- 결과에 없는 기술(예: Redis, Kafka, WebSocket)을 가정형 질문으로 새로 추가하지 않는다.
 
 [필드별 출력 규칙]
 
@@ -338,6 +343,7 @@ ${getDifficultyRule(body.level)}
 - 반드시 4~6개 문자열 배열로 작성한다.
 - 각 단계는 실제 사용 흐름의 짧고 명확한 한 문장이다.
 - 구현 작업, 기술 선택, DB 설계 내용을 쓰지 않는다.
+- 양면 서비스라면 각 단계에서 주어(예: 이용자, 제공자, 관리자)를 분명히 적는다.
 
 5. recommendedStack
 - 항상 아래 형태를 유지한다.
@@ -393,7 +399,15 @@ ${getDifficultyRule(body.level)}
   - ## 배포 방법
   - ## 폴더 구조
   - ## 개선 아이디어
-- "## 폴더 구조" 섹션에는 반드시 트리 구조 코드블록을 포함한다.
+- "## 폴더 구조" 섹션은 반드시 fenced code block 형식으로 작성한다.
+- 반드시 아래와 같은 형식을 사용한다:
+
+\`\`\`text
+├── app/
+└── README.md
+\`\`\`
+
+- 단순히 "text" 한 줄을 쓰고 트리를 이어붙이는 형식은 금지한다.
 - 이 코드블록은 readmeDraft 문자열 내부 Markdown이다.
 - 코드블록 언어는 text 또는 bash를 사용한다.
 - 트리는 최소 8줄 이상 작성하고, \`├──\`, \`└──\`, \`│\` 문자를 사용한다.
@@ -405,6 +419,8 @@ ${getDifficultyRule(body.level)}
 - 면접에서 실제로 받을 만한 설계 질문이어야 한다.
 - 너무 포괄적인 질문만 반복하지 않는다.
 - 트레이드오프, 데이터 흐름, 예외 처리, 확장성 중 최소 2개 이상이 자연스럽게 드러나야 한다.
+- 결과에 실제로 포함된 기술과 기능만 기준으로 작성한다.
+- 결과에 없는 기술을 가정형 질문으로 새로 추가하지 않는다.
 
 [자기 점검 - 출력에는 포함하지 말 것]
 - 선택 언어가 시스템의 주 구현 기술로 자연스럽게 반영되었는가?

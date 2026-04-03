@@ -268,7 +268,6 @@ export function buildPrompt(body: GeneratePlanInput): string {
 8. coreApiSpecs는 비워두지 않는다. REST API가 아닌 경우에도 command/interface spec으로 작성한다.
 9. "N/A", "없음", "미정", "기본 스택" 같은 placeholder 표현은 금지한다.
 10. JSON 바깥에는 코드펜스를 쓰지 않는다.
-11. 단, readmeDraft 문자열 내부 Markdown code fence는 허용되며, 폴더 구조 섹션에서는 반드시 사용해야 한다.
 
 ${getDomainRule(body.domain)}
 
@@ -395,28 +394,19 @@ ${getDifficultyRule(body.level)}
 10. readmeDraft
 - 문자열 하나로 작성한다.
 - 실제 README 초안처럼 Markdown 형식으로 작성한다.
-- 반드시 아래 섹션을 포함한다:
+- README는 설계서 보조 요약용이므로 과도하게 길게 작성하지 않는다.
+- 반드시 아래 섹션만 포함한다:
   - # 프로젝트 개요
   - ## 주요 기능
   - ## 기술 스택
   - ## 실행 방법
   - ## 배포 방법
-  - ## 폴더 구조
-  - ## 개선 아이디어
-- "## 폴더 구조" 섹션은 반드시 fenced code block 형식으로 작성한다.
-- 반드시 아래와 같은 형식을 사용한다:
-
-\`\`\`text
-├── app/
-└── README.md
-\`\`\`
-
-- 단순히 "text" 한 줄을 쓰고 트리를 이어붙이는 형식은 금지한다.
-- 이 코드블록은 readmeDraft 문자열 내부 Markdown이다.
-- 코드블록 언어는 text 또는 bash를 사용한다.
-- 트리는 최소 8줄 이상 작성하고, \`├──\`, \`└──\`, \`│\` 문자를 사용한다.
-- readmeDraft의 "배포 방법"은 buildSteps의 마지막 단계와 일치해야 한다.
-- README는 너무 길게 늘어놓지 말고, 바로 복붙 가능한 실용적인 초안으로 작성한다.
+- ## 폴더 구조 섹션은 작성하지 않는다.
+- ## 개선 아이디어 섹션은 작성하지 않는다.
+- 코드블록은 꼭 필요한 경우가 아니면 사용하지 않는다.
+- 실행 방법은 3~5줄 정도의 짧은 절차로 정리한다.
+- 배포 방법은 buildSteps의 마지막 단계와 일치해야 한다.
+- 폴더 구조, 세부 디렉터리 트리, 미래 확장 계획은 readmeDraft에 넣지 않는다.
 
 11. interviewPoints
 - 반드시 4~6개 문자열 배열로 작성한다.
@@ -439,6 +429,7 @@ ${getDifficultyRule(body.level)}
 - 마지막 buildSteps와 readmeDraft의 배포 방법이 일치하는가?
 - generic 엔티티가 없는가?
 - userFlow와 무관한 기능/API/엔티티가 없는가?
+- readmeDraft에 폴더 구조와 개선 아이디어를 넣지 않았는가?
 - 모든 값이 비어 있지 않은가?
 
 아래 스키마를 정확히 지켜라:

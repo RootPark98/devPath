@@ -49,8 +49,7 @@ export default function ProjectForm(props: {
     onSubmit,
   } = props;
 
-  const canSubmit =
-    !loading && !!projectType && !!language && !!level && !!domain && authenticated;
+  const canSubmit = !loading && authenticated;
 
   return (
     <section className="dp-card">
@@ -58,12 +57,12 @@ export default function ProjectForm(props: {
         <div className="space-y-1">
           <h2 className="dp-card-title">프로젝트 입력</h2>
           <p className="text-sm dp-muted">
-            프로젝트 유형, 언어, 난이도, 도메인을 고르면 그에 맞는 실무형 프로젝트 설계를 생성합니다.
+            웹 서비스 또는 모바일 앱 유형에 맞는 실무형 프로젝트 설계를 생성합니다.
           </p>
         </div>
 
         <Field label="프로젝트 유형">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {PROJECT_TYPES.map((type) => {
               const checked = projectType === type;
 

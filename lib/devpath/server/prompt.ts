@@ -52,18 +52,11 @@ function getProjectTypeRule(projectType: ProjectType): string {
 - Vercel만으로 끝나는 배포 설명은 금지한다.
 `.trim();
 
-    case "tool":
+    default:
       return `
-[프로젝트 유형 규칙: Developer Tool]
-- 일반 소비자용 서비스처럼 꾸미지 않는다.
-- 인터페이스는 CLI, SDK, VSCode Extension, GitHub App, 챗옵스 봇 중 최소 1개 이상으로 명확해야 한다.
-- recommendedStack.frontend에는 실제 인터페이스를 작성한다. 예: "CLI Interface", "VSCode Extension UI"
-- recommendedStack.backend에는 실행 런타임 또는 처리 계층을 작성한다. 예: "Node.js Runtime", "Python Worker"
-- database는 설정, 캐시, 실행 기록, 결과 메타데이터 등을 저장하는 실제 저장소 기술 하나를 작성한다.
-- REST API가 없으면 coreApiSpecs는 아래 형식으로 작성한다:
-  - method: "COMMAND"
-  - path: 실제 명령어 또는 인터페이스 시그니처
-- userFlow는 입력 → 실행 → 처리 → 결과 확인 흐름이 분명해야 한다.
+[프로젝트 유형 규칙]
+- 선택된 프로젝트 유형에 맞는 사용자 중심 서비스 구조만 설계한다.
+- userFlow, recommendedStack, coreApiSpecs, buildSteps는 프로젝트 유형과 일치해야 한다.
 `.trim();
   }
 }
@@ -113,15 +106,6 @@ function getLanguageInterpretationRule(
 - 선택된 언어/스택 "${language}"는 모바일 클라이언트의 주 스택이다.
 - 다른 모바일 런타임을 섞지 않는다.
 - 사용자가 선택하지 않은 대형 프레임워크를 임의로 추가하지 않는다.
-`.trim();
-  }
-
-  if (projectType === "tool") {
-    return `
-[언어 해석 규칙]
-- 선택된 언어 "${language}"는 도구의 주 실행 언어이자 핵심 런타임이다.
-- 다른 언어 런타임을 주 구현 언어처럼 섞지 않는다.
-- 선택 프레임워크가 있으면 우선 반영하되, 충돌하는 대형 프레임워크는 추가하지 않는다.
 `.trim();
   }
 
@@ -231,6 +215,14 @@ technicalChallenge는 아래 수준으로 작성한다:
 - 장애 대응 전략
 - 성능 병목 해결
 `.trim();
+
+    default:
+      return `
+[난이도 규칙]
+- 선택된 난이도에 맞는 현실적인 복잡도를 유지한다.
+- 과한 기술 과시는 금지한다.
+- 구현 범위는 설명 가능한 수준으로 제한한다.
+`.trim();
   }
 }
 
@@ -265,7 +257,7 @@ export function buildPrompt(body: GeneratePlanInput): string {
 5. 모든 문자열 값은 한국어로 작성한다. 단, 기술명과 고유명사는 영어 유지 가능하다.
 6. AI, 추천, 분석, 생성 같은 표현을 쓰면 반드시 그에 맞는 외부 AI API 또는 명확한 규칙 기반 처리 로직이 설계에 반영되어야 한다.
 7. recommendedStack.backend, recommendedStack.database, coreApiSpecs는 항상 채운다.
-8. coreApiSpecs는 비워두지 않는다. REST API가 아닌 경우에도 command/interface spec으로 작성한다.
+8. coreApiSpecs는 비워두지 않는다. REST API가 아닌 경우에도 인터페이스 수준으로 작성한다.
 9. "N/A", "없음", "미정", "기본 스택" 같은 placeholder 표현은 금지한다.
 10. JSON 바깥에는 코드펜스를 쓰지 않는다.
 
@@ -290,11 +282,10 @@ ${getDifficultyRule(body.level)}
   - 개인화 피드백 루프
   - 복잡한 운영 자동화
 - 초급이라면 위 기능 축은 최대 2개까지만 허용한다.
-- 초급이라면 "추천 + 사용자 플레이리스트 생성" 정도까지만 허용하고, 여기에 소셜 검색/공유/추천 개선까지 동시에 넣지 않는다.
 
 [설계 순서 - 내부적으로만 따를 것]
 1. 현실적인 사용자 문제를 하나 정한다.
-2. 그 문제를 해결하는 서비스/앱/도구 시나리오를 정한다.
+2. 그 문제를 해결하는 서비스/앱 시나리오를 정한다.
 3. userFlow를 4~6단계로 쓴다.
 4. userFlow에서 발생하는 데이터를 기준으로 databaseSchema를 만든다.
 5. userFlow를 수행하기 위해 필요한 인터페이스를 coreApiSpecs로 정의한다.
@@ -357,7 +348,6 @@ ${getDifficultyRule(body.level)}
 - 모두 구체적인 기술명만 사용한다.
 - 선택 프레임워크가 있으면 가능한 한 우선 반영한다.
 - 사용자가 선택하지 않은 충돌하는 대형 프레임워크를 임의로 추가하지 않는다.
-- Developer Tool에서는 frontend에 실제 인터페이스를 적는다. 예: "CLI Interface", "VSCode Extension UI"
 
 6. databaseSchema
 - 반드시 3~5개 엔티티 배열로 작성한다.
@@ -373,9 +363,6 @@ ${getDifficultyRule(body.level)}
 - Web/Mobile에서는 REST API 중심으로 작성한다.
   - method: GET, POST, PATCH, DELETE 중 하나
   - path: /api/... 형태
-- Developer Tool에서 REST가 없으면 아래 방식 허용:
-  - method: COMMAND
-  - path: 실제 명령어 또는 인터페이스 시그니처
 - description은 userFlow의 어떤 행동을 지원하는지 드러나야 한다.
 - 같은 method + path 조합을 중복해서 쓰지 않는다.
 

@@ -3,38 +3,38 @@
 // 👉 타입을 한 군데에 모으면 나중에 구조가 바뀌어도 수정이 쉬워진다.
 
 export type GeneratedPlan = {
-  projectTitle: string
-  oneLiner: string
+  projectTitle: string;
+  oneLiner: string;
 
-  technicalChallenge: string
-  userFlow: string[]
+  technicalChallenge: string;
+  userFlow: string[];
 
   recommendedStack: {
-    frontend: string[]
-    backend: string[]
-    database: string
-    libraries: string[]
-  }
+    frontend: string[];
+    backend: string[];
+    database: string;
+    libraries: string[];
+  };
 
   databaseSchema: {
-    entity: string
-    fields: string[]
-    description: string
-  }[]
+    entity: string;
+    fields: string[];
+    description: string;
+  }[];
 
   coreApiSpecs: {
-    method: string
-    path: string
-    description: string
-  }[]
+    method: string;
+    path: string;
+    description: string;
+  }[];
 
-  mvpFeatures: string[]
-  buildSteps: string[]
-  readmeDraft: string
-  interviewPoints: string[]
-}
+  mvpFeatures: string[];
+  buildSteps: string[];
+  readmeDraft: string;
+  interviewPoints: string[];
+};
 
-export const PROJECT_TYPES = ["web", "mobile", "tool"] as const;
+export const PROJECT_TYPES = ["web", "mobile"] as const;
 export type ProjectType = (typeof PROJECT_TYPES)[number];
 
 // projectType 도입 이후에는 전체 언어를 하나의 고정 배열로 관리하기보다
@@ -48,9 +48,6 @@ export const LANGUAGES = [
   "Flutter",
   "Swift",
   "Kotlin",
-  "C++",
-  "C#",
-  "Go",
 ] as const;
 
 export type Language = (typeof LANGUAGES)[number];
@@ -74,11 +71,8 @@ export const DOMAINS = [
   "location-based",
   "content-platform",
   "social",
-  "developer-tools",
   "productivity-automation",
   "finance",
-  "log-monitoring",
-  "api-platform",
 ] as const;
 
 export type Domain = (typeof DOMAINS)[number];
@@ -98,16 +92,10 @@ export type PlanHistoryItem = {
   output: GeneratedPlan;
 };
 
-export type GeneratePlanInput = {
-  projectType: ProjectType;
-  language: Language;
-  level: Level;
-  domain: Domain;
-  frameworks: string[];
-};
+export type GeneratePlanInput = PlanInput;
 
 export type GeneratePlanResponse = {
-  input: GeneratePlanInput; // ✅ RequestBody 제거
+  input: GeneratePlanInput;
   output: GeneratedPlan;
   historyId: string;
 };

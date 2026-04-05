@@ -11,7 +11,6 @@ import type { Language, ProjectType, Domain } from "./types";
 export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
   web: "Web Service",
   mobile: "Mobile App",
-  tool: "Developer Tool",
 } as const;
 
 /**
@@ -22,7 +21,6 @@ export const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
 export const LANGUAGES_BY_PROJECT_TYPE: Record<ProjectType, readonly Language[]> = {
   web: ["React/Next.js", "Python", "Java"],
   mobile: ["React Native", "Flutter", "Swift", "Kotlin"],
-  tool: ["Python", "Java", "C++", "C#", "Go"],
 } as const;
 
 /**
@@ -32,7 +30,6 @@ export const LANGUAGES_BY_PROJECT_TYPE: Record<ProjectType, readonly Language[]>
 export const DEFAULT_LANGUAGE_BY_PROJECT_TYPE: Record<ProjectType, Language> = {
   web: "React/Next.js",
   mobile: "React Native",
-  tool: "Python",
 } as const;
 
 /**
@@ -57,15 +54,15 @@ export const FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE: Record<
       "Django",
       "Flask",
       "SQLAlchemy",
-      "Celery",
-      "Redis",
+      "Jinja2",
+      "HTMX",
     ],
     Java: [
       "Spring Boot",
       "Spring Security",
+      "Thymeleaf",
       "JPA (Hibernate)",
       "QueryDSL",
-      "MyBatis",
       "JUnit",
     ],
   },
@@ -94,41 +91,6 @@ export const FRAMEWORKS_BY_PROJECT_TYPE_AND_LANGUAGE: Record<
       "Room",
       "Retrofit",
       "Hilt",
-    ],
-  },
-
-  tool: {
-    Python: [
-      "Typer",
-      "Click",
-      "Rich",
-      "Pydantic",
-      "SQLAlchemy",
-    ],
-    Java: [
-      "Picocli",
-      "JUnit",
-      "Gradle",
-      "Jackson",
-    ],
-    "C++": [
-      "Boost",
-      "CMake",
-      "Catch2",
-      "fmt",
-      "spdlog",
-    ],
-    "C#": [
-      ".NET",
-      "Spectre.Console",
-      "xUnit",
-      "Serilog",
-    ],
-    Go: [
-      "Cobra",
-      "Bubble Tea",
-      "sqlc",
-      "Zap",
     ],
   },
 } as const;
@@ -163,9 +125,6 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   "location-based": "위치 기반",
   "content-platform": "콘텐츠 플랫폼",
   social: "소셜 서비스",
-  "developer-tools": "개발자 도구",
   "productivity-automation": "생산성 자동화",
   finance: "금융/가계부",
-  "log-monitoring": "로그 모니터링",
-  "api-platform": "API 플랫폼",
 };

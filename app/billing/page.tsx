@@ -47,6 +47,20 @@ export default async function BillingPage() {
         <p className="text-sm dp-muted">
           필요한 만큼 충전하고, 프로젝트 설계를 계속 생성하세요.
         </p>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <a
+            href="https://www.devpath.co.kr/payment-info"
+            className="text-neutral-600 underline underline-offset-4 hover:text-black dark:text-neutral-300 dark:hover:text-white"
+          >
+            결제 정보 보기
+          </a>
+          <a
+            href="https://www.devpath.co.kr/refund"
+            className="text-neutral-600 underline underline-offset-4 hover:text-black dark:text-neutral-300 dark:hover:text-white"
+          >
+            환불정책 보기
+          </a>
+        </div>
       </div>
 
       {/* Notice */}

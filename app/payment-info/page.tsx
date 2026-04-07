@@ -88,17 +88,13 @@ export default function PaymentInfoPage() {
               );
             })}
           </div>
-
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            단건 결제 기준 최고가 상품: <strong>₩4,900</strong>
-          </p>
         </section>
 
         <section className="mb-10 space-y-4">
           <h2 className="text-xl font-semibold">결제 및 환불 안내</h2>
           <div className="space-y-3 text-sm leading-6 text-neutral-700 dark:text-neutral-300">
             <p>
-              - 결제수단: <strong>신용/체크카드 및 간편결제</strong>
+              - 결제수단: <strong>간편결제</strong>
             </p>
             <p>
               - 결제통화: <strong>KRW</strong>
@@ -120,19 +116,28 @@ export default function PaymentInfoPage() {
           <div className="space-y-3 text-sm leading-6 text-neutral-700 dark:text-neutral-300">
             <p>환불 문의 이메일: devpath327@gmail.com</p>
             <p>
-              환불정책:{" "}
-              <Link href="/refund-policy" className="underline underline-offset-4">
-                /refund-policy
-              </Link>
+                <a
+                    href="https://www.devpath.co.kr/refund"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-4 hover:opacity-80"
+                >
+                    환불정책
+                </a>
             </p>
+
             <p>
-              실제 구매 페이지:{" "}
-              <Link href="/credit" className="underline underline-offset-4">
-                /credit
-              </Link>
-              <span className="ml-1 text-neutral-500 dark:text-neutral-400">
-                (로그인 후 이용 가능)
-              </span>
+                <a
+                    href="https://www.devpath.co.kr/billing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-4 hover:opacity-80"
+                >
+                    실제 구매 페이지
+                </a>
+                <span className="ml-1 text-neutral-500 dark:text-neutral-400">
+                    (로그인 후 이용 가능)
+                </span>
             </p>
           </div>
         </section>

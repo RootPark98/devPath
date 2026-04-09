@@ -226,6 +226,19 @@ technicalChallenge는 아래 수준으로 작성한다:
   }
 }
 
+function getUniversalGuardRules(): string {
+  return `
+[범용 현실성 규칙]
+- 선택된 난이도에서 설명하기 어려운 구조보다, 단순하지만 일관된 구조를 우선한다.
+- 고위험 전문 판단(의료, 법률, 정신건강 진단/치료, 투자 판단, 위기 개입)을 대체하거나 직접 제공하는 서비스를 기본 시나리오로 선택하지 않는다.
+- "추천", "매칭", "개인화", "조언", "분석", "자동화"라는 표현을 사용할 때는 해당 기능의 입력 데이터, 처리 로직, 결과가 userFlow, databaseSchema, coreApiSpecs, mvpFeatures 중 최소 2개 이상에서 드러나야 한다.
+- 위 조건을 만족하지 못하면 "검색", "필터링", "요약", "분류", "조회", "가이드"처럼 더 단순하고 정확한 표현으로 낮춘다.
+- 외부 연동(AI API, 지도 API, 결제, 푸시 알림, 외부 데이터 연동)은 프로젝트 핵심 가치에 직접 기여하는 것 위주로 최대 1개 중심만 강하게 사용한다.
+- 초급에서는 AI 분석, 전문가 연결, 예약/스케줄링, 실시간 처리, 푸시 알림을 한 프로젝트의 핵심 루프로 동시에 묶지 않는다.
+- 두 가지 설계가 모두 가능할 때는 더 단순하고 설명 가능한 쪽을 선택한다.
+`.trim();
+}
+
 export function buildPrompt(body: GeneratePlanInput): string {
   const frameworksLine =
     body.frameworks.length > 0 ? body.frameworks.join(", ") : "선택 없음";
@@ -273,6 +286,8 @@ ${getLanguageInterpretationRule(
 
 ${getDifficultyRule(body.level)}
 
+${getUniversalGuardRules()}
+
 [범위 제어 규칙]
 - 초급과 중급에서는 핵심 기능 축을 과하게 늘리지 않는다.
 - 하나의 프로젝트에 아래 기능 축을 3개 이상 동시에 넣지 않는다:
@@ -304,6 +319,9 @@ ${getDifficultyRule(body.level)}
 - buildSteps의 마지막 배포 전략과 readmeDraft의 배포 방법은 같은 기술/플랫폼이어야 한다.
 - buildSteps에는 userFlow 또는 mvpFeatures에 없는 기능 구현 단계를 추가하지 않는다.
 - projectTitle, oneLiner, technicalChallenge, userFlow, mvpFeatures가 모두 같은 서비스를 설명해야 한다.
+- oneLiner, technicalChallenge, interviewPoints, readmeDraft는 설계 본문에 실제로 포함된 기능과 기술만 기준으로 작성한다.
+- userFlow의 상태 변경 단계(업로드, 저장, 제출, 예약, 승인, 결제 등)는 가능하면 coreApiSpecs와 databaseSchema에 모두 흔적이 있어야 한다.
+- 추천, 매칭, 개인화, 조언 기능을 언급하면 이를 뒷받침하는 입력값, 저장 데이터, 처리 로직, 사용자 결과가 실제 설계에 포함되어야 한다.
 - interviewPoints는 실제로 설계된 기능과 구조만을 기반으로 작성한다.
 - 결과에 없는 기술(예: Redis, Kafka, WebSocket)을 가정형 질문으로 새로 추가하지 않는다.
 

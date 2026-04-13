@@ -8,11 +8,13 @@ type PackageType = "starter" | "pro" | "max";
 
 export function BuyCreditsButton({
   packageType,
+  authenticated,
   className,
   fullWidth = true,
   label = "지금 구매하기",
 }: {
   packageType: PackageType;
+  authenticated: boolean;
   className?: string;
   fullWidth?: boolean;
   label?: string;
@@ -24,6 +26,11 @@ export function BuyCreditsButton({
   const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!;
 
   const onClick = async () => {
+    if (!authenticated) {
+      router.push("/login?callbackUrl=/billing");
+      return;
+    }
+
     if (!storeId || !channelKey) {
       alert("PORTONE env가 설정되지 않았습니다.");
       return;
@@ -31,12 +38,12 @@ export function BuyCreditsButton({
 
     setLoading(true);
     try {
-      // 1) 서버에서 paymentId/amount/credits 준비
       const res = await fetch("/api/billing/credit/prepare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ packageType }),
       });
+
       const json = await res.json().catch(() => null);
 
       if (!json?.ok) {
@@ -50,10 +57,8 @@ export function BuyCreditsButton({
         credits: number;
       };
 
-      // 2) PortOne SDK 로드
       await loadPortOne();
 
-      // 3) 결제창 호출
       const response = await window.PortOne!.requestPayment({
         storeId,
         channelKey,
@@ -64,7 +69,6 @@ export function BuyCreditsButton({
         payMethod: "CARD",
       });
 
-      // 4) 응답 처리
       if (response?.code) {
         alert(response?.message ?? "결제가 취소/실패했습니다.");
         return;

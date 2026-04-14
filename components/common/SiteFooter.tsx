@@ -45,7 +45,7 @@ export default function SiteFooter() {
             <p>
               사업장주소:{" "}
               <span className="font-medium text-neutral-700 dark:text-neutral-200">
-                부산광역시 사하구 하신중앙로 339
+                부산광역시 사하구 하신중앙로 339, 1702호(하단동)
               </span>
             </p>
             <p>

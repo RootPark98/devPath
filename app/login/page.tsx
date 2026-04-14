@@ -40,17 +40,10 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Divider */}
-          <div className="my-6 flex items-center gap-3 text-xs dp-muted">
-            <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-            안전한 OAuth 로그인
-            <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-          </div>
-
           {/* Footer note */}
-          <p className="text-center text-xs dp-muted">
+          {/* <p className="text-center text-xs dp-muted">
             로그인하면 DevPath 이용 약관 및 개인정보 처리 방침에 동의하게 됩니다.
-          </p>
+          </p> */}
         </section>
       </div>
     </main>

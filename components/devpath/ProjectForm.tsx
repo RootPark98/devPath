@@ -207,11 +207,21 @@ export default function ProjectForm(props: {
                 : "border border-neutral-200 bg-neutral-50 text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950/40 dark:text-neutral-400",
             ].join(" ")}
           >
-            {loading
-              ? "AI가 설계 중입니다..."
-              : authenticated
-                ? "프로젝트 설계 생성"
-                : "로그인 후 생성 가능"}
+            <span className="flex items-center justify-center gap-3">
+              <span>
+                {loading
+                  ? "AI가 설계 중입니다..."
+                  : authenticated
+                    ? "프로젝트 설계 생성"
+                    : "로그인 후 생성 가능"}
+              </span>
+
+              {authenticated && !loading && (
+                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white/85">
+                  10 credits
+                </span>
+              )}
+            </span>
           </button>
 
           {!authenticated && (

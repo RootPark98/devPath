@@ -85,9 +85,6 @@ export default async function BillingPage() {
 
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-neutral-100 px-3 py-1 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
-              카드 결제
-            </span>
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
               KRW
             </span>
             <span className="rounded-full bg-neutral-100 px-3 py-1 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">

@@ -9,6 +9,7 @@ import PlanResult from "@/components/devpath/PlanResult";
 import ErrorBanner from "@/components/devpath/ErrorBanner";
 import HistoryPanel from "@/components/devpath/HistoryPanel";
 import ExportDropdown from "@/components/devpath/ExportDropdown";
+import SiteFooter from "@/components/common/SiteFooter";
 import { FeedbackSection } from "@/components/devpath/feedback-section";
 
 import type {
@@ -171,11 +172,10 @@ export default function Home() {
 - 언어/스택: ${planInput?.language ?? language}
 - 난이도: ${planInput?.level ?? level}
 - 도메인: ${DOMAIN_LABELS[planInput?.domain ?? domain]}
-- 프레임워크/라이브러리: ${
-      (planInput?.frameworks?.length ?? frameworks.length)
+- 프레임워크/라이브러리: ${(planInput?.frameworks?.length ?? frameworks.length)
         ? (planInput?.frameworks ?? frameworks).join(", ")
         : "(선택 없음)"
-    }
+      }
 
 [제목]
 ${plan.projectTitle}
@@ -188,8 +188,8 @@ ${plan.technicalChallenge}
 
 [사용자 흐름]
 ${(plan.userFlow ?? [])
-  .map((step, index) => `${index + 1}. ${step}`)
-  .join("\n")}
+        .map((step, index) => `${index + 1}. ${step}`)
+        .join("\n")}
 
 [추천 기술 스택]
 - Frontend: ${plan.recommendedStack.frontend.join(", ")}
@@ -199,27 +199,27 @@ ${(plan.userFlow ?? [])
 
 [데이터베이스 설계]
 ${plan.databaseSchema
-  .map(
-    (t) =>
-      `- ${t.entity} (${t.description})\n  fields: ${t.fields.join(", ")}`
-  )
-  .join("\n")}
+        .map(
+          (t) =>
+            `- ${t.entity} (${t.description})\n  fields: ${t.fields.join(", ")}`
+        )
+        .join("\n")}
 
 [핵심 API 설계]
 ${plan.coreApiSpecs
-  .map(
-    (api) =>
-      `- ${api.method} ${api.path}\n  ${api.description}`
-  )
-  .join("\n")}
+        .map(
+          (api) =>
+            `- ${api.method} ${api.path}\n  ${api.description}`
+        )
+        .join("\n")}
 
 [MVP 기능]
 ${plan.mvpFeatures.map((feature) => `- ${feature}`).join("\n")}
 
 [구현 단계]
 ${plan.buildSteps
-  .map((step, index) => `${index + 1}. ${step}`)
-  .join("\n")}
+        .map((step, index) => `${index + 1}. ${step}`)
+        .join("\n")}
 
 [면접 포인트]
 ${plan.interviewPoints.map((point) => `- ${point}`).join("\n")}
@@ -230,87 +230,94 @@ ${plan.readmeDraft}
 `.trim();
 
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
+    <div className="min-h-screen flex flex-col">
       <AuthHeader />
-      {error && <ErrorBanner title="오류" message={error.message} disabled={loading} />}
 
-      <ProjectForm
-        projectType={projectType}
-        language={language}
-        level={level}
-        domain={domain}
-        domainOptions={DOMAINS}
-        languages={currentLanguages}
-        frameworkOptions={currentFrameworkOptions}
-        frameworks={frameworks}
-        loading={loading}
-        authenticated={authenticated}
-        onChangeProjectType={handleProjectTypeChange}
-        onChangeLanguage={handleLanguageChange}
-        onChangeLevel={setLevel}
-        onChangeDomain={setDomain}
-        onToggleFramework={toggleFramework}
-        onSubmit={handleSubmit}
-      />
+      <main className="mx-auto w-full max-w-[1100px] flex-1 px-4 py-4">
+        {error && <ErrorBanner title="오류" message={error.message} disabled={loading} />}
 
-      {plan && planInput && (
-        <>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-            <ExportDropdown
-              title={plan.projectTitle}
-              fullText={fullCopyText ?? ""}
-              readmeText={plan.readmeDraft}
+        <ProjectForm
+          projectType={projectType}
+          language={language}
+          level={level}
+          domain={domain}
+          domainOptions={DOMAINS}
+          languages={currentLanguages}
+          frameworkOptions={currentFrameworkOptions}
+          frameworks={frameworks}
+          loading={loading}
+          authenticated={authenticated}
+          onChangeProjectType={handleProjectTypeChange}
+          onChangeLanguage={handleLanguageChange}
+          onChangeLevel={setLevel}
+          onChangeDomain={setDomain}
+          onToggleFramework={toggleFramework}
+          onSubmit={handleSubmit}
+        />
+
+        {plan && planInput && (
+          <>
+            <div className="mt-3 flex justify-end">
+              <ExportDropdown
+                title={plan.projectTitle}
+                fullText={fullCopyText ?? ""}
+                readmeText={plan.readmeDraft}
+                onCopyAll={async () => {
+                  if (!fullCopyText) return;
+                  await copyToClipboard(fullCopyText);
+                  alert("복사 완료!");
+                }}
+                onCopyReadme={async () => {
+                  await copyToClipboard(plan.readmeDraft);
+                  alert("복사 완료!");
+                }}
+              />
+            </div>
+
+            <PlanResult
+              plan={plan}
+              input={planInput}
               onCopyAll={async () => {
                 if (!fullCopyText) return;
-                await copyToClipboard(fullCopyText);
-                alert("복사 완료!");
+                try {
+                  await copyToClipboard(fullCopyText);
+                  alert("복사 완료!");
+                } catch {
+                  alert("복사 실패");
+                }
               }}
               onCopyReadme={async () => {
-                await copyToClipboard(plan.readmeDraft);
-                alert("복사 완료!");
+                try {
+                  await copyToClipboard(plan.readmeDraft);
+                  alert("복사 완료!");
+                } catch {
+                  alert("복사 실패");
+                }
               }}
             />
-          </div>
 
-          <PlanResult
-            plan={plan}
-            input={planInput}
-            onCopyAll={async () => {
-              if (!fullCopyText) return;
-              try {
-                await copyToClipboard(fullCopyText);
-                alert("복사 완료!");
-              } catch {
-                alert("복사 실패");
-              }
-            }}
-            onCopyReadme={async () => {
-              try {
-                await copyToClipboard(plan.readmeDraft);
-                alert("복사 완료!");
-              } catch {
-                alert("복사 실패");
-              }
-            }}
-          />
+            <FeedbackSection
+              planHistoryId={activeHistoryId ?? undefined}
+              inputSnapshot={planInput}
+              outputSnapshot={plan}
+              resetSignal={feedbackVersion}
+            />
+          </>
+        )}
 
-          <FeedbackSection
-            planHistoryId={activeHistoryId ?? undefined}
-            inputSnapshot={planInput}
-            outputSnapshot={plan}
-            resetSignal={feedbackVersion}
-          />
-        </>
-      )}
+        <HistoryPanel
+          items={historyItems}
+          onRestore={restoreHistory}
+          onDelete={(id) => {
+            removeHistory(id);
+          }}
+          onClear={clearHistory}
+        />
+      </main>
 
-      <HistoryPanel
-        items={historyItems}
-        onRestore={restoreHistory}
-        onDelete={(id) => {
-          removeHistory(id);
-        }}
-        onClear={clearHistory}
-      />
-    </main>
+      <div className="mx-auto w-full max-w-[1100px] px-4">
+        <SiteFooter />
+      </div>
+    </div>
   );
 }

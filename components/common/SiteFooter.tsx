@@ -39,7 +39,7 @@ export default function SiteFooter() {
             <p>
               통신판매업 신고번호:{" "}
               <span className="font-medium text-neutral-700 dark:text-neutral-200">
-                토스페이먼츠 연동 후 등록 예정
+                2026-부산사하-0269
               </span>
             </p>
             <p>

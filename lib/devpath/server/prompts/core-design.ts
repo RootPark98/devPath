@@ -103,6 +103,12 @@ export function buildCoreDesignPrompt(body: GeneratePlanInput): string {
 6. AI, 추천, 분석, 생성 같은 표현을 쓰면 외부 AI API 또는 명확한 규칙 기반 처리 로직이 설계에 반영되어야 한다.
 7. 역할은 최대 2개까지만 허용한다.
 8. 초급과 중급에서는 핵심 기능 축을 과하게 늘리지 않는다.
+9. 모든 엔티티 필드는 coreUserFlow에서 근거를 찾을 수 있어야 한다.
+   그 데이터를 생성하거나 수정하는 flow 단계가 없으면 해당 필드는 만들지 않는다.
+10. 사용자 식별자(userId, memberId 등)를 엔티티에 포함하려면
+    coreUserFlow에 반드시 회원가입 또는 로그인 단계가 있어야 한다.
+    인증 플로우가 없으면 sessionKey, deviceId 같은 비로그인 식별 방식을 사용하거나
+    사용자 식별자 필드 자체를 제거한다.
 
 ${getDomainRule(body.domain)}
 
@@ -147,6 +153,8 @@ ${getUniversalGuardRules()}
 - linkedFlowIds는 coreUserFlow의 id만 사용한다.
 - linkedFlowIds가 비어 있는 entity는 금지한다.
 - userFlow에 근거가 없는 entity는 만들지 않는다.
+- 각 entity의 keyFields는 coreUserFlow의 특정 단계에서 생성·수정·조회되는 데이터만 포함한다.
+- userFlow에 인증 단계가 없으면 userId, memberId 등 사용자 식별자 필드를 넣지 않는다.
 
 [coreInterfaces 규칙]
 - 반드시 3~6개 배열로 작성한다.

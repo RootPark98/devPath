@@ -1,9 +1,8 @@
 import type { GeneratePlanInput, GeneratePlanResponse } from "@/lib/devpath/types";
 import { buildCoreDesignPrompt, type CoreDesignDraft } from "@/lib/devpath/server/prompts/core-design";
 import { buildFinalPlanPrompt } from "@/lib/devpath/server/prompts/final-plan";
-import { buildConsistencyFixPrompt } from "@/lib/devpath/server/prompts/consistency-fix";
-import { callGeminiGenerateContent } from "@/lib/devpath/server/gemini";
-import { safeParseGeminiJson } from "@/lib/devpath/server/parse";
+import { callClaudeGenerateContent } from "@/lib/devpath/server/claude";
+import { extractClaudeText, safeParseClaudeJson } from "@/lib/devpath/server/parse";
 import { coercePlan, validatePlan } from "@/lib/devpath/server/validate";
 
 export type GeneratePipelineErrorCode =
@@ -35,7 +34,7 @@ export class GeneratePipelineError extends Error {
   }
 }
 
-type GeminiJsonStageParams = {
+type ClaudeJsonStageParams = {
   apiKey: string;
   prompt: string;
   temperature: number;
@@ -47,13 +46,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-async function callGeminiJsonStage(params: GeminiJsonStageParams): Promise<unknown> {
+async function callClaudeJsonStage(params: ClaudeJsonStageParams): Promise<unknown> {
   const { apiKey, prompt, temperature, timeoutMs, stageName } = params;
 
   let resp: Response;
 
   try {
-    resp = await callGeminiGenerateContent({
+    resp = await callClaudeGenerateContent({
       apiKey,
       prompt,
       temperature,
@@ -89,29 +88,29 @@ async function callGeminiJsonStage(params: GeminiJsonStageParams): Promise<unkno
 
     throw new GeneratePipelineError({
       code: "UPSTREAM_ERROR",
-      message: `${stageName} 단계에서 Gemini API 호출에 실패했습니다.`,
+      message: `${stageName} 단계에서 Claude API 호출에 실패했습니다.`,
       status: resp.status,
       details: errText,
     });
   }
 
   const json = await resp.json();
-  const rawText: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  const rawText: string = extractClaudeText(json);
 
   if (!rawText || typeof rawText !== "string") {
     throw new GeneratePipelineError({
       code: "PARSE_ERROR",
-      message: `${stageName} 단계에서 Gemini 응답 텍스트를 찾지 못했습니다.`,
+      message: `${stageName} 단계에서 Claude 응답 텍스트를 찾지 못했습니다.`,
       details: json,
     });
   }
 
   try {
-    return safeParseGeminiJson(rawText);
+    return safeParseClaudeJson(rawText);
   } catch (e: any) {
     throw new GeneratePipelineError({
       code: "PARSE_ERROR",
-      message: `${stageName} 단계에서 Gemini JSON 파싱에 실패했습니다.`,
+      message: `${stageName} 단계에서 Claude JSON 파싱에 실패했습니다.`,
       details: String(e?.message ?? e),
       rawText,
     });
@@ -159,34 +158,28 @@ export async function generatePlanPipeline(params: {
 }): Promise<GeneratePlanResponse["output"]> {
   const { apiKey, body } = params;
 
-  const coreDesignUnknown = await callGeminiJsonStage({
+  // 1단계: Core Design — temperature 낮춰서 일관성 확보
+  const coreDesignUnknown = await callClaudeJsonStage({
     apiKey,
     prompt: buildCoreDesignPrompt(body),
-    temperature: 0.7,
-    timeoutMs: 20000,
+    temperature: 0.35, // 기존 0.7에서 낮춤 — source of truth라 창의성보다 일관성 우선
+    timeoutMs: 90000,
     stageName: "coreDesign",
   });
 
   assertCoreDesignDraft(coreDesignUnknown);
   const coreDesign = coreDesignUnknown;
 
-  const finalPlanDraft = await callGeminiJsonStage({
+  // 2단계: Final Plan
+  const finalPlanDraft = await callClaudeJsonStage({
     apiKey,
     prompt: buildFinalPlanPrompt(body, coreDesign),
-    temperature: 0.55,
-    timeoutMs: 25000,
+    temperature: 0.4,
+    timeoutMs: 90000,
     stageName: "finalPlan",
   });
 
-  const fixedPlan = await callGeminiJsonStage({
-    apiKey,
-    prompt: buildConsistencyFixPrompt(body, coreDesign, finalPlanDraft),
-    temperature: 0.25,
-    timeoutMs: 20000,
-    stageName: "consistencyFix",
-  });
-
-  const coerced = coercePlan(fixedPlan);
+  const coerced = coercePlan(finalPlanDraft);
 
   if (!validatePlan(coerced)) {
     throw new GeneratePipelineError({
@@ -195,7 +188,6 @@ export async function generatePlanPipeline(params: {
       details: {
         coreDesign,
         finalPlanDraft,
-        fixedPlan,
       },
     });
   }

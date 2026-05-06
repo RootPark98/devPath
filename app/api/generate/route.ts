@@ -385,12 +385,12 @@ export async function POST(request: Request) {
     ledgerId = reserveResult.ledgerId;
 
     // ✅ Gemini API Key 확인
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       // 예약했는데 서버 설정 문제면 환불
       await refundCredits({ userId: session.user.id, cost, refId });
       creditsReserved = false;
-      return apiErr("MISSING_API_KEY", "GEMINI_API_KEY가 설정되어 있지 않습니다.", 500);
+      return apiErr("MISSING_API_KEY", "ANTHROPIC_API_KEY가 설정되어 있지 않습니다.", 500);
     }
 
     // ✅ NEW: Gemini 3단계 파이프라인 호출

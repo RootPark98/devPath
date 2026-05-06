@@ -21,12 +21,12 @@ export async function callGeminiGenerateContent(opts: GeminiOptions): Promise<Re
     apiKey,
     prompt,
     temperature = 0.4,
-    timeoutMs = 15000,
+    timeoutMs = 30000,
     maxRetries429 = 2,
   } = opts;
 
   const url =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=" +
     apiKey;
 
   // 429 재시도 루프 (attempt: 0=최초, 1..=재시도)

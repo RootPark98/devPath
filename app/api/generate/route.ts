@@ -263,12 +263,6 @@ import {
   sanitizeFrameworks,
 } from "@/lib/devpath/server/input";
 
-// ❌ OLD: 단일 프롬프트 호출 방식에서 사용하던 import
-// import { buildPrompt } from "@/lib/devpath/server/prompt";
-// import { callGeminiGenerateContent } from "@/lib/devpath/server/gemini";
-// import { safeParseGeminiJson } from "@/lib/devpath/server/parse";
-// import { coercePlan, validatePlan } from "@/lib/devpath/server/validate";
-
 // ✅ NEW: 3단계 프롬프트 파이프라인
 import {
   generatePlanPipeline,
@@ -451,84 +445,6 @@ export async function POST(request: Request) {
         { error: String(e?.message ?? e) }
       );
     }
-
-    /*
-    ❌ OLD: 기존 Gemini 단일 호출 + 직접 파싱/검증 방식
-    - 이제 이 구간은 generatePlanPipeline() 안으로 이동함.
-    - 삭제해도 되는 부분.
-
-    const prompt = buildPrompt(body);
-
-    let resp: Response;
-    try {
-      resp = await callGeminiGenerateContent({
-        apiKey,
-        prompt,
-        temperature: 0.8,
-        timeoutMs: 20000,
-        maxRetries429: 2,
-      });
-    } catch (e: any) {
-      // ✅ 네트워크/타임아웃 등 -> 환불
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-
-      if (e?.code === "TIMEOUT" || e?.message === "TIMEOUT") {
-        return apiErr("TIMEOUT", "AI 응답 시간이 초과되었습니다.\n다시 시도해주세요.", 504);
-      }
-      return apiErr(
-        "UPSTREAM_ERROR",
-        "외부 API 호출 중 네트워크 오류가 발생했습니다.",
-        500,
-        { error: String(e?.message ?? e) }
-      );
-    }
-
-    if (resp.status === 429) {
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-      return apiErr("RATE_LIMIT", "요청이 너무 많습니다.\n잠시 후 다시 시도해주세요.", 429);
-    }
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-      return apiErr("UPSTREAM_ERROR", "Gemini API 호출 실패", 500, { upstream: errText });
-    }
-
-    const json = await resp.json();
-    const rawText: string =
-      json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-    if (!rawText || typeof rawText !== "string") {
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-      return apiErr("PARSE_ERROR", "Gemini 응답에서 JSON 텍스트를 찾지 못했습니다.", 500);
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = safeParseGeminiJson(rawText);
-    } catch (e: any) {
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-      return apiErr("PARSE_ERROR", "Gemini JSON 파싱 실패", 500, {
-        error: String(e?.message ?? e),
-        rawText,
-      });
-    }
-
-    const coerced = coercePlan(parsed);
-    if (!validatePlan(coerced)) {
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-      return apiErr("SCHEMA_ERROR", "Gemini JSON 스키마 검증 실패", 500, {
-        raw: parsed,
-        rawText,
-      });
-    }
-    */
 
     // ✅ 결과 저장(history) + ledger ref를 historyId로 업데이트
     const saved = await prisma.history.create({

@@ -110,6 +110,8 @@ ${JSON.stringify(coreDesign, null, 2)}
   - description: 해당 엔티티가 userFlow에서 왜 필요한지 설명
 - entity 이름은 "Project", "Activity", "Item", "Data", "Entity", "Result" 단독 사용 금지.
 - userFlow에 등장하지 않는 데이터는 만들지 않는다.
+- description에 (F1), (F2), (F3) 같은 flow ID 참조 표기를 넣지 않는다.
+- description은 자연스러운 한국어 문장으로만 작성한다.
 
 7. coreApiSpecs
 - 반드시 3~6개 배열로 작성한다.

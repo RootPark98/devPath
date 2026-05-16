@@ -232,7 +232,7 @@ export default function ProjectForm(props: {
 
           {loading && authenticated && (
             <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-center text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950/40 dark:text-neutral-300">
-              실무형 설계서를 구성하는 중입니다. 생성까지 약 2분 정도
+              프로젝트 설계서를 구성하는 중입니다. 생성까지 약 2분 정도
               소요될 수 있습니다.
             </div>
           )}

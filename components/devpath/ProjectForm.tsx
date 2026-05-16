@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   DOMAINS,
   LEVELS,
@@ -209,11 +210,16 @@ export default function ProjectForm(props: {
           >
             <span className="flex items-center justify-center gap-3">
               <span>
-                {loading
-                  ? "AI가 설계 중입니다..."
-                  : authenticated
-                    ? "프로젝트 설계 생성"
-                    : "로그인 후 생성 가능"}
+                {loading ? (
+                  <>
+                    AI가 설계 중입니다
+                    <LoadingDots />
+                  </>
+                ) : authenticated ? (
+                  "프로젝트 설계 생성"
+                ) : (
+                  "로그인 후 생성 가능"
+                )}
               </span>
 
               {authenticated && !loading && (
@@ -223,6 +229,13 @@ export default function ProjectForm(props: {
               )}
             </span>
           </button>
+
+          {loading && authenticated && (
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-center text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950/40 dark:text-neutral-300">
+              실무형 설계서를 구성하는 중입니다. 생성까지 약 2분 정도
+              소요될 수 있습니다.
+            </div>
+          )}
 
           {!authenticated && (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950/40 dark:text-neutral-300">
@@ -235,7 +248,7 @@ export default function ProjectForm(props: {
             </div>
           )}
 
-          {authenticated && (
+          {authenticated && !loading && (
             <div className="text-center text-xs dp-muted">
               크레딧 잔고는 상단에서 확인할 수 있어요.{" "}
               <Link href="/billing" className="underline">
@@ -249,12 +262,30 @@ export default function ProjectForm(props: {
   );
 }
 
+function LoadingDots() {
+  const [dots, setDots] = useState(".");
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setDots((prev) => {
+        if (prev === ".") return "..";
+        if (prev === "..") return "...";
+        return ".";
+      });
+    }, 500);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return <span>{dots}</span>;
+}
+
 function Field({
   label,
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="space-y-2">

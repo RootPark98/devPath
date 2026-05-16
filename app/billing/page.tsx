@@ -8,14 +8,14 @@ const PACKAGES = [
     type: "starter" as const,
     name: "Starter",
     credits: 50,
-    price: 2900,
+    price: 4900,
     highlight: false,
   },
   {
     type: "pro" as const,
     name: "Pro",
     credits: 100,
-    price: 4900,
+    price: 9900,
     highlight: true,
   },
 ];

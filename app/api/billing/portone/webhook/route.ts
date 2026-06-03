@@ -67,25 +67,44 @@ export async function POST(request: Request) {
     return apiErr("BAD_REQUEST", "paymentId를 찾지 못했습니다.", 400);
   }
 
-  // ✅ 멱등 처리
+  // ✅ FIX 1: PortOne API 조회를 트랜잭션 밖에서 먼저 수행
+  // 외부 HTTP 호출이 DB 커넥션을 점유하지 않도록 분리
+  let payment: any;
   try {
-    await prisma.webhookEvent.create({
-      data: {
-        provider: "portone",
-        providerEventId: webhookId,
-        paymentId,
-      },
-      select: { id: true },
-    });
+    const client = PortOneClient({ secret: apiSecret });
+    payment = await client.payment.getPayment({ paymentId });
   } catch (e: any) {
-    if (e?.code === "P2002") {
-      return apiOk({ received: true, duplicate: true }, 200);
-    }
-    return apiErr("INTERNAL_ERROR", "웹훅 이벤트 기록 실패", 500);
+    return apiErr("INTERNAL_ERROR", "PortOne 결제 정보 조회에 실패했습니다.", 500);
   }
+
+  if (!payment || typeof payment !== "object" || !("amount" in payment)) {
+    return apiOk({ received: true, ignored: true }, 200);
+  }
+
+  const portoneStatus = payment.status;
+  const mappedStatus = mapStatus(portoneStatus);
 
   try {
     const result = await prisma.$transaction(async (tx) => {
+      // ✅ FIX 2: 멱등 키(webhookEvent)를 트랜잭션 안에서 생성
+      // 트랜잭션 실패 시 webhookEvent도 함께 롤백 → PortOne 재시도 정상 처리 가능
+      try {
+        await tx.webhookEvent.create({
+          data: {
+            provider: "portone",
+            providerEventId: webhookId,
+            paymentId,
+            processedAt: new Date(),
+          },
+          select: { id: true },
+        });
+      } catch (e: any) {
+        if (e?.code === "P2002") {
+          return { duplicate: true as const };
+        }
+        throw e;
+      }
+
       const intent = await tx.paymentIntent.findUnique({
         where: { merchantUid: paymentId },
         select: {
@@ -101,18 +120,7 @@ export async function POST(request: Request) {
         throw Object.assign(new Error("NOT_FOUND"), { _code: "NOT_FOUND" as const });
       }
 
-      // 🔥 1) PortOne API로 진짜 상태 조회
-      const client = PortOneClient({ secret: apiSecret });
-      const payment = await client.payment.getPayment({ paymentId });
-
-      if (!payment || typeof payment !== "object" || !("amount" in payment)) {
-          return { ignored: true };
-      }
-
-      const portoneStatus = payment.status;
-      const mappedStatus = mapStatus(portoneStatus);
-
-      // 🔥 2) 금액 검증 (PAID일 때만 강제)
+      // 금액 검증 (PAID일 때만 강제)
       if (mappedStatus === "PAID") {
         const paidAmount = payment.amount?.total;
         if (paidAmount !== intent.amount) {
@@ -121,11 +129,15 @@ export async function POST(request: Request) {
             portoneAmount: paidAmount,
             expected: intent.amount,
           });
-          return { mismatch: true };
+          // 금액 불일치는 재시도해도 해결되지 않으므로 FAILED로 종결
+          // → PENDING 고착 방지, 운영자가 상태로 이상 탐지 가능
+          await tx.paymentIntent.update({
+            where: { id: intent.id },
+            data: { status: "FAILED" },
+          });
+          return { mismatch: true as const };
         }
       }
-
-      // 🔥 3) 상태별 처리
 
       // ===== PAID =====
       if (mappedStatus === "PAID") {
@@ -196,12 +208,9 @@ export async function POST(request: Request) {
       return { ignored: true };
     });
 
-    prisma.webhookEvent
-      .update({
-        where: { providerEventId: webhookId },
-        data: { processedAt: new Date() },
-      })
-      .catch(() => {});
+    if (result.duplicate) {
+      return apiOk({ received: true, duplicate: true }, 200);
+    }
 
     return apiOk({ received: true, paymentId, ...result }, 200);
   } catch (e: any) {

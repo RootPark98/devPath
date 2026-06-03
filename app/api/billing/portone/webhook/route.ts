@@ -180,7 +180,14 @@ export async function POST(request: Request) {
 
       // ===== REFUNDED (부분취소 포함) =====
       if (mappedStatus === "REFUNDED") {
-        if (intent.status === "PAID") {
+        // updateMany + WHERE status = PAID 로 PAID→REFUNDED 전환을 원자적으로 처리
+        // count > 0 인 트랜잭션만 크레딧 차감 → 동시 웹훅 이중 차감 방지
+        const { count } = await tx.paymentIntent.updateMany({
+          where: { id: intent.id, status: "PAID" },
+          data: { status: "REFUNDED" },
+        });
+
+        if (count > 0) {
           await tx.creditBalance.update({
             where: { userId: intent.userId },
             data: { balance: { decrement: intent.credits } },
@@ -195,12 +202,13 @@ export async function POST(request: Request) {
               refId: intent.id,
             },
           });
+        } else {
+          // PAID가 아닌 상태(PENDING 등)에서 환불 도달 — 크레딧 차감 없이 상태만 변경
+          await tx.paymentIntent.update({
+            where: { id: intent.id },
+            data: { status: "REFUNDED" },
+          });
         }
-
-        await tx.paymentIntent.update({
-          where: { id: intent.id },
-          data: { status: "REFUNDED" },
-        });
 
         return { refunded: true };
       }

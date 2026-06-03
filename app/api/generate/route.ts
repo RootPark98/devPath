@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
 import {
+  isProjectType,
   isLanguage,
   isLevel,
   isDomain,
@@ -71,7 +72,12 @@ export async function POST(request: Request) {
     const raw = await request.json();
 
     // ✅ 입력 검증
-    if (!isLanguage(raw?.language) || !isLevel(raw?.level) || !isDomain(raw?.domain)) {
+    if (
+      !isProjectType(raw?.projectType) ||
+      !isLanguage(raw?.language) ||
+      !isLevel(raw?.level) ||
+      !isDomain(raw?.domain)
+    ) {
       return apiErr("INVALID_INPUT", "잘못된 입력값입니다.", 400);
     }
 
@@ -82,6 +88,12 @@ export async function POST(request: Request) {
       domain: raw.domain,
       frameworks: sanitizeFrameworks(raw.projectType, raw.language, raw.frameworks),
     };
+
+    // ✅ API 키 확인 — 크레딧 예약 전에 검사해야 환불 로직 불필요
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return apiErr(“MISSING_API_KEY”, “ANTHROPIC_API_KEY가 설정되어 있지 않습니다.”, 500);
+    }
 
     // ✅ 크레딧 먼저 “예약(차감)”
     // - AI 호출 전에 차감해야 무료 생성이 안 생김
@@ -127,15 +139,6 @@ export async function POST(request: Request) {
 
     creditsReserved = true;
     ledgerId = reserveResult.ledgerId;
-
-    // ✅ Gemini API Key 확인
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      // 예약했는데 서버 설정 문제면 환불
-      await refundCredits({ userId: session.user.id, cost, refId });
-      creditsReserved = false;
-      return apiErr("MISSING_API_KEY", "ANTHROPIC_API_KEY가 설정되어 있지 않습니다.", 500);
-    }
 
     // ✅ NEW: Gemini 3단계 파이프라인 호출
     let coerced: GeneratePlanResponse["output"];
@@ -206,12 +209,15 @@ export async function POST(request: Request) {
       select: { id: true },
     });
 
+    // 생성 성공 → 이후 어떤 에러가 나도 환불하면 안 됨
+    creditsReserved = false;
+
     if (ledgerId) {
-      // "이번 USE 차감이 어떤 history 생성에 쓰였는지" 연결
+      // "이번 USE 차감이 어떤 history 생성에 쓰였는지" 연결 (best-effort)
       await prisma.creditLedger.update({
         where: { id: ledgerId },
         data: { refType: "HISTORY", refId: saved.id },
-      });
+      }).catch(() => {});
     }
 
     // ✅ 응답

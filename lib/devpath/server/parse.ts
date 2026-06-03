@@ -37,13 +37,6 @@ export function extractClaudeText(json: any): string {
 export function safeParseClaudeJson(rawText: string): unknown {
   const cleaned = stripCodeFences(rawText);
   const jsonLike = extractLikelyJson(cleaned);
-
-  try {
-    const parsed = JSON.parse(jsonLike);
-    return Array.isArray(parsed) ? parsed[0] ?? null : parsed;
-  } catch {}
-
-  const fallback = extractLikelyJson(cleaned);
-  const parsed2 = JSON.parse(fallback);
-  return Array.isArray(parsed2) ? parsed2[0] ?? null : parsed2;
+  const parsed = JSON.parse(jsonLike);
+  return Array.isArray(parsed) ? parsed[0] ?? null : parsed;
 }

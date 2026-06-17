@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     // ✅ API 키 확인 — 크레딧 예약 전에 검사해야 환불 로직 불필요
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return apiErr(“MISSING_API_KEY”, “ANTHROPIC_API_KEY가 설정되어 있지 않습니다.”, 500);
+      return apiErr("MISSING_API_KEY", "ANTHROPIC_API_KEY가 설정되어 있지 않습니다.", 500);
     }
 
     // ✅ 크레딧 먼저 “예약(차감)”

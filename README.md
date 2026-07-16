@@ -23,16 +23,17 @@ DevPath는 사용자의 프로젝트 유형, 개발 언어, 수준, 관심 분�
 
 ---
 
-기술 스택
+## 기술 스택
 
-구분| 기술
-Frontend / Backend| Next.js App Router, TypeScript, React
-Database| PostgreSQL, Prisma
-Authentication| NextAuth, Google OAuth
-AI| Claude API
-Payment| PortOne
-Styling| Tailwind CSS
-Deployment| Vercel
+| 구분 | 기술 |
+|---|---|
+| Frontend / Backend | Next.js App Router, TypeScript, React |
+| Database | PostgreSQL, Prisma |
+| Authentication | NextAuth, Google OAuth |
+| AI | Claude API |
+| Payment | PortOne |
+| Styling | Tailwind CSS |
+| Deployment | Vercel |
 
 ---
 

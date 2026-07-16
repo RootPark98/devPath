@@ -1,95 +1,94 @@
-🚀 **DevPath (데브패스)**<br>
-AI 기반 주니어 개발자 전용 프로젝트 로드맵 생성 서비스
+DevPath
 
-주니어 프론트엔드 개발자가 프로젝트를 시작할 때 겪는 "무엇을, 어떻게 만들어야 할까?"라는 고민을 AI(Gemini)를 통해 해결합니다. 사용자의 기술 스택과 목표에 맞춘 MVP(최소 기능 제품) 기획과 구현 로드맵을 즉시 제공합니다.
+«개발자 취업준비생을 위한 AI 기반 포트폴리오 프로젝트 설계 서비스»
 
----
+DevPath는 사용자의 프로젝트 유형, 개발 언어, 수준, 관심 분야와 프레임워크를 바탕으로 실무형 프로젝트 설계안을 생성합니다.
 
-🛠 **Tech Stack**<br>
-Framework: Next.js 16 (App Router)
+단순한 프로젝트 아이디어뿐만 아니라 사용자 흐름, 데이터베이스 구조, API 명세, MVP 기능, 구현 단계와 면접 포인트를 함께 제공합니다.
 
-Language: TypeScript
-
-Authentication: NextAuth.js (Google / Github)
-
-Database: Prisma (ORM) & PostgreSQL
-
-AI Engine: Google Gemini Pro API
-
-Styling: Tailwind CSS
-
-State Management: React Context API & Custom Hooks
+🔗 "서비스 바로가기" (https://devpath.co.kr)
 
 ---
 
-🏗 **Project Structure**<br>
-프로젝트는 유지보수와 확장성을 고려하여 API 레이어와 UI 컴포넌트가 명확히 분리된 계층형 구조를 따릅니다.
+주요 기능
 
-Plaintext
-```text
-.
-├── app/                  # Next.js App Router (Pages & API)
-│   ├── api/              # Backend API Endpoints (Auth, AI, User)
-│   └── (pages)/          # UI Layouts & View Components
-├── components/           # UI Components (Common, Business Logic)
-├── lib/                  # 핵심 로직 및 유틸리티
-│   ├── devpath/          # API Client & Business Services (Gemini 연동 등)
-│   ├── auth/             # NextAuth Configuration
-│   └── prisma.ts         # Prisma Client Instance
-├── prisma/               # Database Schema (User, Plan, Payment)
-├── types/                # TypeScript Interface & Type Definitions
-└── constants/            # API Response Codes & Static Data
-```
+- 프로젝트 유형·언어·난이도·관심 분야 기반 설계안 생성
+- Claude API를 활용한 2단계 프로젝트 생성
+- AI 응답 JSON 파싱, 형식 보정 및 스키마 검증
+- Google OAuth 로그인 및 데이터베이스 세션 관리
+- 사용자별 프로젝트 생성 기록 저장·조회·삭제
+- 생성 결과 피드백 및 PDF 내보내기
+- 크레딧 기반 프로젝트 생성
+- PortOne 결제 및 웹훅 처리
 
 ---
 
-✨ **Key Logic & Workflows**<br>
-🔐 Secure Authentication Flow (인증 흐름)
-NextAuth.js를 기반으로 소셜 로그인과 유저 세션을 안전하게 관리합니다.
+기술 스택
 
-로그인 요청: 유저가 Google 또는 Github 로그인을 시도합니다.
-
-OAuth 인증: 선택한 공급자(Provider)를 통해 인증이 완료되면, NextAuth 콜백 함수가 실행됩니다.
-
-사용자 확인 및 저장: Prisma를 통해 기존 가입 여부를 확인하고, 신규 유저일 경우 DB(User Table)에 자동으로 프로필을 생성합니다.
-
-세션 발급: 서버 측에서 JWT 또는 데이터베이스 세션을 생성하여 브라우저에 전달합니다.
-
-인가 가드(Authorization): 미들웨어 및 서버 컴포넌트에서 세션 유무를 판단하여 서비스 접근 권한을 제어합니다.
+구분| 기술
+Frontend / Backend| Next.js App Router, TypeScript, React
+Database| PostgreSQL, Prisma
+Authentication| NextAuth, Google OAuth
+AI| Claude API
+Payment| PortOne
+Styling| Tailwind CSS
+Deployment| Vercel
 
 ---
 
-💳 **PortOne Payment Flow (결제 프로세스 - 준비 중)**<br>
-PortOne(포트원) V2 SDK를 통합하여 안정적인 결제 환경을 구축할 예정입니다.
+핵심 구현
 
-결제 요청: 클라이언트에서 결제 금액과 주문 정보를 포함하여 PortOne SDK를 호출합니다.
+AI 생성 파이프라인
 
-결제창 팝업: 카드사, 간편결제 등 유저가 선택한 수단으로 인증을 진행합니다.
+핵심 프로젝트 설계를 먼저 생성한 뒤, 해당 결과를 기준으로 최종 설계안을 확장하는 2단계 파이프라인을 구성했습니다.
 
-클라이언트 완료: 결제 완료 후 반환된 paymentId를 백엔드 API로 전달합니다.
+AI 응답은 바로 반환하지 않고 JSON 파싱, 필드 보정과 최종 스키마 검증을 거쳐 처리합니다.
 
-Webhook 및 검증:
+Core Design 생성
+        ↓
+필수 필드 검증
+        ↓
+Final Plan 생성
+        ↓
+형식 보정 및 스키마 검증
 
-백엔드에서 PortOne 서버로 결제 내역 조회를 요청합니다.
+크레딧 관리
 
-실제 DB상의 주문 금액과 결제된 금액이 일치하는지 위변조 여부를 검증합니다.
+현재 크레딧 잔액과 변경 이력을 각각 "CreditBalance", "CreditLedger"로 분리했습니다.
 
-최종 처리: 검증이 완료되면 Payment 테이블에 이력을 기록하고, 유저에게 프로젝트 생성 권한을 부여합니다.
+AI 호출 전 크레딧을 차감하고, 생성에 실패하면 트랜잭션을 통해 환불 이력 생성과 잔액 복구를 함께 처리합니다.
+
+결제 처리
+
+PortOne 결제를 연동하고 결제 요청과 상태를 "PaymentIntent"로 관리합니다.
+
+웹훅 수신 시 실제 결제 금액을 서버에서 다시 확인하며, 웹훅 고유번호를 저장해 동일한 결제 이벤트가 중복 처리되지 않도록 구성했습니다.
+
+사용자별 접근 제어
+
+클라이언트에서 전달한 사용자 정보를 신뢰하지 않고, 서버에서 확인한 데이터베이스 세션의 사용자 ID를 기준으로 생성 기록과 결제 데이터를 처리합니다.
 
 ---
 
-🤖 **AI Roadmap Generation (AI 로드맵 생성)**<br>
-입력 데이터 수집: 유저로부터 기술 스택, 프로젝트 난이도, 선호하는 주제를 입력받습니다.
+시스템 구조
 
-프롬프트 튜닝: Gemini Pro API가 이해하기 쉬운 구조화된 JSON 요청 포맷으로 변환합니다.
-
-비동기 처리: AI의 응답을 파싱하여 실무 중심의 MVP 기능 리스트와 단계별 구현 가이드를 화면에 렌더링합니다.
+Next.js Client
+      ↓
+Next.js API Routes
+      ├─ NextAuth
+      ├─ Claude API
+      ├─ PortOne API
+      └─ Credit / History Logic
+      ↓
+Prisma
+      ↓
+PostgreSQL
 
 ---
 
-🎨 **Architecture Features**<br>
-Custom Client Wrapper: fetch를 추상화한 클라이언트 레이어를 두어 API 통신 시 일관된 에러 처리와 인터셉터 로직을 수행합니다.
+개발 정보
 
-Component Modularity: UI 요소(Common)와 서비스 로직(DevPath)을 분리하여 재사용성과 가독성을 높였습니다.
-
-Type Safety: API 요청/응답 전문에 TypeScript Interface를 적용하여 런타임 안정성을 확보했습니다.
+- 개발 기간: 2026.02 ~ 2026.05
+- 개발 형태: 개인 프로젝트
+- 담당 범위: 기획, 화면 개발, 서버 API, 데이터베이스, 인증, 결제, 배포
+- 운영 상태: 개발 및 배포 완료, 서비스 유지 중

@@ -72,8 +72,6 @@ PortOne 결제를 연동하고 결제 요청과 상태를 "PaymentIntent"로 관
 
 시스템 구조
 ```mermaid
-flowchart TD
-
 Next.js Client
       ↓
 Next.js API Routes

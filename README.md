@@ -70,21 +70,20 @@ PortOne 결제를 연동하고 결제 요청과 상태를 "PaymentIntent"로 관
 
 ---
 
-시스템 구조
-```mermaid
-Next.js Client
-      ↓
-Next.js API Routes
-      ├─ NextAuth
-      ├─ Claude API
-      ├─ PortOne API
-      └─ Credit / History Logic
-      ↓
-Prisma
-      ↓
-PostgreSQL
-```
+## 시스템 구조
 
+```mermaid
+graph TD;
+    A["Next.js Client"] --> B["Next.js API Routes"];
+    B --> C["NextAuth 인증"];
+    B --> D["Claude API"];
+    B --> E["PortOne API"];
+    B --> F["크레딧 및 생성 기록 처리"];
+    C --> G["Prisma"];
+    F --> G;
+    E --> G;
+    G --> H["PostgreSQL"];
+```
 
 ---
 

@@ -171,7 +171,7 @@ export async function POST(request: Request) {
         }
 
         if (e.code === "PARSE_ERROR") {
-          return apiErr("PARSE_ERROR", "Gemini JSON 파싱 실패", 500, {
+          return apiErr("PARSE_ERROR", "Claude JSON 파싱 실패", 500, {
             error: e.message,
             rawText: e.rawText,
             details: e.details,
@@ -179,13 +179,13 @@ export async function POST(request: Request) {
         }
 
         if (e.code === "SCHEMA_ERROR") {
-          return apiErr("SCHEMA_ERROR", "Gemini JSON 스키마 검증 실패", 500, {
+          return apiErr("SCHEMA_ERROR", "Claude JSON 스키마 검증 실패", 500, {
             error: e.message,
             details: e.details,
           });
         }
 
-        return apiErr("UPSTREAM_ERROR", "Gemini API 호출 실패", 500, {
+        return apiErr("UPSTREAM_ERROR", "Claude API 호출 실패", 500, {
           error: e.message,
           details: e.details,
         });

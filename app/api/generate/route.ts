@@ -14,7 +14,7 @@ import {
   sanitizeFrameworks,
 } from "@/lib/devpath/server/input";
 
-// ✅ NEW: 3단계 프롬프트 파이프라인
+// ✅ NEW: 2단계 프롬프트 파이프라인
 import {
   generatePlanPipeline,
   GeneratePipelineError,
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       return apiErr("MISSING_API_KEY", "ANTHROPIC_API_KEY가 설정되어 있지 않습니다.", 500);
     }
 
-    // ✅ 크레딧 먼저 “예약(차감)”
+    // ✅ 크레딧 먼저 “예약(차감)”(선차감)
     // - AI 호출 전에 차감해야 무료 생성이 안 생김
     const reserveResult = await prisma.$transaction(async (tx) => {
       const bal = await tx.creditBalance.upsert({
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
     creditsReserved = true;
     ledgerId = reserveResult.ledgerId;
 
-    // ✅ NEW: Gemini 3단계 파이프라인 호출
+    // ✅ NEW: Claude 2단계 파이프라인 호출
     let coerced: GeneratePlanResponse["output"];
 
     try {
